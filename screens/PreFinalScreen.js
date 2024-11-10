@@ -14,17 +14,18 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import IpAddress from "../DeviceConfig";
+import { AuthContext } from "../auth/AuthContext";
 
 const PreFinalScreen = () => {
-  //const { token, setToken } = useContext();
+  const { token, setToken } = useContext(AuthContext);
   const [userData, setUserData] = useState();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
-  // useEffect(() => {
-  //   if (token) {
-  //     navigation.replace("MainStack", { screen: "Main" });
-  //   }
-  // }, [token]);
+  useEffect(() => {
+    if (token) {
+      navigation.replace("MainStack", { screen: "Home" });
+    }
+  }, [token]);
 
   useEffect(() => {
     getAllScreenData();
@@ -68,16 +69,16 @@ const PreFinalScreen = () => {
         userData
       );
 
-      if (res.status == 200) {
+      if (res.status == 200 && res.data) {
         const token = res.data;
         await AsyncStorage.setItem("token", token);
-        //setToken(token);
+        setToken(token);
         Alert.alert("Success!", "Account created successfully", [
           {
             text: "Cancel",
             onPress: () => console.log("Ask me later pressed"),
           },
-          { text: "OK", onPress: () => navigation.navigate("Login") },
+          { text: "OK", onPress: () => console.log("OK") },
         ]);
         clearAllScreenData();
       }

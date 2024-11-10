@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Pressable,
@@ -15,7 +16,7 @@ import axios from "axios";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import IpAddress from "../DeviceConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { FIREBASE_AUTH } from "../api/auth/FirebaseConfig";
+import { AuthContext, FIREBASE_AUTH } from "../auth/AuthContext";
 
 const LoginScreen = () => {
   // handling navigation
@@ -24,23 +25,33 @@ const LoginScreen = () => {
   // user information
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { token, setToken } = useContext(AuthContext);
 
   // handling ui
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const signIn = async () => {
-    setLoading(true);
     try {
-      const response = await signInWithEmailAndPassword(
-        FIREBASE_AUTH,
-        email,
-        password
-      );
-      alert("Success" + response);
+      const user = {
+        email: email,
+        password: password,
+      };
+      await axios.post(`http://${IpAddress}:8000/login`, user).then((res) => {
+        const token = res.data;
+        AsyncStorage.setItem("token", token);
+        setToken(token);
+      });
+
+      Alert.alert("Success!", "Login successful", [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel"),
+        },
+        { text: "OK", onPress: () => console.log("OK") },
+      ]);
     } catch (error) {
       alert("Failed" + error.message);
     } finally {
-      setLoading(false);
     }
   };
 
@@ -161,25 +172,12 @@ const LoginScreen = () => {
                   color: "gray",
                   fontSize: 16,
                   margin: 12,
+                  marginTop: 40,
                 }}
               >
                 Don't have an account? Sign up
               </Text>
             </Pressable>
-          </View>
-          <View
-            style={{
-              marginTop: 50,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Image
-              style={{ width: 110, height: 60, resizeMode: "contain" }}
-              source={{
-                uri: "https://playo-website.gumlet.io/playo-website-v2/logos-icons/new-logo-playo.png?q=50",
-              }}
-            />
           </View>
         </KeyboardAvoidingView>
       </View>

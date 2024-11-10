@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Stack } from "react-native";
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import SplashScreen from "../screens/SplashScreen";
@@ -8,23 +8,45 @@ import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import SelectImageScreen from "../screens/SelectImageScreen";
 import PreFinalScreen from "../screens/PreFinalScreen";
+import { AuthContext } from "../auth/AuthContext";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
+  const { token } = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const AuthStack = () => {
+  // Simulate loading state to show splash screen initially
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Show splash for 2 seconds
+  }, []);
+  const MainStack = () => {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    );
+  };
+  const SplashStack = () => {
     return (
       <Stack.Navigator>
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: true }}
-        />
+      </Stack.Navigator>
+    );
+  };
+
+  const AuthStack = () => {
+    return (
+      <Stack.Navigator>
         <Stack.Screen
           name="Login"
           component={LoginScreen}
@@ -50,7 +72,13 @@ const StackNavigator = () => {
   };
   return (
     <NavigationContainer>
-      <AuthStack />
+      {isLoading ? (
+        <SplashStack />
+      ) : token == null || token == "" ? (
+        <AuthStack />
+      ) : (
+        <MainStack />
+      )}
     </NavigationContainer>
   );
 };
