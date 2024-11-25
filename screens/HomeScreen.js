@@ -22,8 +22,8 @@ const StackNav = ({ navigation }) => {
   return (
     <Stack.Navigator
       screenOptions={{
-        statusBarColor: "#0163d2",
-        headerStyle: { backgroundColor: "#0163d2" },
+        statusBarColor: "#013220",
+        headerStyle: { backgroundColor: "#013220" },
         headerTintColor: "#fff",
         headerTitleAlign: "center",
       }}
@@ -39,8 +39,9 @@ const StackNav = ({ navigation }) => {
           ),
         }}
       />
-      <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="History" component={HistoryScreen} />
+      
+      
+      
     </Stack.Navigator>
   );
 };
@@ -48,18 +49,18 @@ const StackNav = ({ navigation }) => {
 // Drawer Navigator (Side Navigation)
 const DrawerNav = () => {
   return (
-    <Drawer.Navigator
-      drawerContent={(props) => <DrawerContent {...props} />}
+    <Drawer.Navigator 
       screenOptions={{
-        headerShown: false,
+        headerShown: false, // Disable header for Drawer Navigator
       }}
+      drawerContent={(props) => <DrawerContent {...props} />} // Use custom DrawerContent
     >
       <Drawer.Screen name="User" component={StackNav} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
       <Drawer.Screen name="History" component={HistoryScreen} />
     </Drawer.Navigator>
   );
-};
+}
 
 // Bottom Tab Navigator (Home, Order, Pay)
 const TabNav = () => {
@@ -79,7 +80,7 @@ const TabNav = () => {
 
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#0163d2",
+        tabBarActiveTintColor: "#013220",
         tabBarInactiveTintColor: "gray",
         headerShown: route.name !== "Home",
       })}

@@ -1,6 +1,6 @@
 import {StyleSheet, Text, View} from 'react-native';
 
-function UserScreen() {
+const UserScreen  = (props) =>{
   return (
     <View style={styles.viewStyle}>
       
@@ -14,6 +14,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
+    backgroundColor:'#DFE8D8',
   },
   textStyle: {
     fontSize: 28,

@@ -2,13 +2,14 @@ import { StyleSheet, Text, View, Stack } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
-import SplashScreen from "../screens/SplashScreen";
+
 import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import SelectImageScreen from "../screens/SelectImageScreen";
 import PreFinalScreen from "../screens/PreFinalScreen";
 import { AuthContext } from "../auth/AuthContext";
+import SplashScreen from "../screens/SplashView";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -16,10 +17,14 @@ const StackNavigator = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Simulate loading state to show splash screen initially
+  const [isSplashVisible, setIsSplashVisible] = useState(true); // State to manage SplashScreen visibility
+
   useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000); // Show splash for 2 seconds
+    const timer = setTimeout(() => {
+      setIsSplashVisible(false); // Hide splash screen after 2 seconds
+    }, 2000);
+
+    return () => clearTimeout(timer); // Clean up timer on component unmount
   }, []);
   const MainStack = () => {
     return (
@@ -32,17 +37,17 @@ const StackNavigator = () => {
       </Stack.Navigator>
     );
   };
-  const SplashStack = () => {
-    return (
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Splash"
-          component={SplashScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    );
-  };
+  // const SplashStack = () => {
+  //   return (
+  //     <Stack.Navigator>
+  //       <Stack.Screen
+  //         name="Splash"
+  //         component={SplashScreen}
+  //         options={{ headerShown: false }}
+  //       />
+  //     </Stack.Navigator>
+  //   );
+  // };
 
   const AuthStack = () => {
     return (
@@ -72,14 +77,11 @@ const StackNavigator = () => {
   };
   return (
     <NavigationContainer>
-      {/* {isLoading ? (
-        <SplashStack />
-      ) : token == null || token == "" ? (
-        <AuthStack />
+      {isSplashVisible ? ( // Render SplashScreen while isSplashVisible is true
+       <SplashScreen/>
       ) : (
-        <MainStack />
-      )} */}
-      <MainStack/>
+       <MainStack/>
+      )}
     </NavigationContainer>
   );
 };
