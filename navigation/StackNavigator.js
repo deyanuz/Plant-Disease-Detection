@@ -72,13 +72,14 @@ const StackNavigator = () => {
   };
   return (
     <NavigationContainer>
-      {isLoading ? (
+      {/* {isLoading ? (
         <SplashStack />
       ) : token == null || token == "" ? (
         <AuthStack />
       ) : (
         <MainStack />
-      )}
+      )} */}
+      <MainStack/>
     </NavigationContainer>
   );
 };

@@ -1,59 +1,102 @@
-import { StyleSheet, Text, View, Pressable, Alert } from "react-native";
-import React, { useContext } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { FIREBASE_AUTH } from "../auth/FirebaseConfig";
-import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AuthContext } from "../auth/AuthContext";
+import React from "react";
+import { StyleSheet, Pressable } from "react-native";
+import Icon from "react-native-vector-icons/Entypo";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NavigationContainer } from "@react-navigation/native";
 
-const HomeScreen = () => {
-  const navigation = useNavigation();
-  const { token, setToken } = useContext(AuthContext);
-  const signOutAndClearAuthToken = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      setToken("");
+import UserScreen from "./useScreenr";
+import ProfileScreen from "./profileScreen";
+import HistoryScreen from "./HistoryScreen";
+import OrderScreen from "./OrderScreen";
+import PayScreen from "./PayScreen";
+import DrawerContent from "./DrawerContent";
 
-      navigation.replace("Login");
+const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator();
+const Tab = createBottomTabNavigator();
 
-      Alert.alert("Success!", "Log out successful", [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel"),
-        },
-        { text: "OK", onPress: () => console.log("OK") },
-      ]);
-    } catch (error) {
-      console.log("Error", error);
-    }
-  };
+// Stack Navigator for Side Navigation (User, Profile, History)
+const StackNav = ({ navigation }) => {
   return (
-    <SafeAreaView>
-      <View
-        style={{
-          width: 200,
-          backgroundColor: "#9d23bc",
-          padding: 15,
-          marginTop: 50,
-          marginLeft: "auto",
-          marginRight: "auto",
-          borderRadius: 6,
+    <Stack.Navigator
+      screenOptions={{
+        statusBarColor: "#0163d2",
+        headerStyle: { backgroundColor: "#0163d2" },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    >
+      <Stack.Screen
+        name="User"
+        component={UserScreen}
+        options={{
+          headerLeft: () => (
+            <Pressable onPress={() => navigation.toggleDrawer()}>
+              <Icon name="menu" size={30} color="#fff" style={{ marginLeft: 10 }} />
+            </Pressable>
+          ),
         }}
-      >
-        <Pressable onPress={signOutAndClearAuthToken}>
-          <Text
-            style={{
-              color: "white",
-              textAlign: "center",
-              fontSize: 15,
-              fontWeight: "bold",
-            }}
-          >
-            Log Out
-          </Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+      />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="History" component={HistoryScreen} />
+    </Stack.Navigator>
+  );
+};
+
+// Drawer Navigator (Side Navigation)
+const DrawerNav = () => {
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => <DrawerContent {...props} />}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Drawer.Screen name="User" component={StackNav} />
+      <Drawer.Screen name="Profile" component={ProfileScreen} />
+      <Drawer.Screen name="History" component={HistoryScreen} />
+    </Drawer.Navigator>
+  );
+};
+
+// Bottom Tab Navigator (Home, Order, Pay)
+const TabNav = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+
+          if (route.name === "Home") {
+            iconName = "home";
+          } else if (route.name === "Order") {
+            iconName = "shopping-bag";
+          } else if (route.name === "Pay") {
+            iconName = "credit-card";
+          }
+
+          return <Icon name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "#0163d2",
+        tabBarInactiveTintColor: "gray",
+        headerShown: route.name !== "Home",
+      })}
+    >
+      <Tab.Screen name="Home" component={DrawerNav} />
+      <Tab.Screen name="Order" component={OrderScreen} />
+      <Tab.Screen name="Pay" component={PayScreen} />
+    </Tab.Navigator>
+  );
+};
+
+// Main App Component
+const HomeScreen = () => {
+  return (
+
+      <TabNav />
+    
   );
 };
 
