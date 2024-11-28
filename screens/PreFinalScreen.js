@@ -15,6 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import IpAddress from "../DeviceConfig";
 import { AuthContext } from "../auth/AuthContext";
+import { ActivityIndicator } from "react-native-paper";
 
 const PreFinalScreen = () => {
   const { token, setToken } = useContext(AuthContext);
@@ -73,13 +74,17 @@ const PreFinalScreen = () => {
         const token = res.data;
         await AsyncStorage.setItem("token", token);
         setToken(token);
-        Alert.alert("Success!", "Account created successfully", [
-          {
-            text: "Cancel",
-            onPress: () => console.log("Ask me later pressed"),
-          },
-          { text: "OK", onPress: () => console.log("OK") },
-        ]);
+        Alert.alert(
+          "Success!",
+          "Sign Up Successfully.\nPlease verify your email",
+          [
+            {
+              text: "Cancel",
+              onPress: () => console.log("Ask me later pressed"),
+            },
+            { text: "OK", onPress: () => console.log("OK") },
+          ]
+        );
         clearAllScreenData();
       }
     } catch (error) {
@@ -119,9 +124,31 @@ const PreFinalScreen = () => {
             Setting up your profile for you
           </Text>
         </View>
+        {loading ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              margin: 80,
+            }}
+          >
+            <ActivityIndicator
+              animating={loading}
+              color="#9d23bc"
+              size="large"
+              style={{ padding: 20 }}
+            />
+          </View>
+        ) : (
+          <></>
+        )}
       </SafeAreaView>
       <Pressable
-        onPress={registerUser}
+        onPress={() => {
+          if (!loading) {
+            registerUser();
+          }
+        }}
         style={{
           color: "white",
           padding: 15,
@@ -130,7 +157,7 @@ const PreFinalScreen = () => {
           marginBottom: 30,
           padding: 12,
           marginHorizontal: 10,
-          borderRadius: 6,
+borderRadius: 6,
         }}
       >
         <Text

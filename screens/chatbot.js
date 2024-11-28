@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, Text, View, Button, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/Entypo";
+import Entypo from "react-native-vector-icons/Entypo";
 
-const ProfileScreen = ({ navigation }) => {
+const chatbot = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.viewStyle}>
       
@@ -27,4 +27,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-export default ProfileScreen;
+export default chatbot;
