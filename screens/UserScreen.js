@@ -1,33 +1,141 @@
-import { StyleSheet, Text, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Entypo";
+import { StyleSheet, Text, View, FlatList, Image, TextInput } from "react-native";
 
 const UserScreen = ({ navigation }) => {
+  const categories = [
+    { id: 1, name: "Jute", icon: "🌾" },
+    { id: 2, name: "Tomato", icon: "🍅" },
+    { id: 3, name: "Strawberry", icon: "🍓" },
+    { id: 4, name: "Potato", icon: "🥔" },
+  ];
+
+  const products = [
+    { id: 1, name: "Rice Seeds", price: "$20.99/Kg", image: require("../assets/icons/icon.jpg") },
+    { id: 2, name: "Jute Seeds", price: "$13.99/Kg", image: require("../assets/icons/icon.jpg") },
+    { id: 3, name: "Strawberry Seeds", price: "$24.99/Kg", image: require("../assets/icons/icon.jpg") },
+    { id: 4, name: "Tomato Seeds", price: "$28.99/Kg", image: require("../assets/icons/icon.jpg") },
+  ];
+
   return (
-    <SafeAreaView style={styles.viewStyle}>
-      <Pressable onPress={() => navigation.toggleDrawer()}>
-        <Icon name="menu" size={30} color="#000" style={{ marginLeft: 10 }} />
-      </Pressable>
-      <Text style={styles.textStyle}>This is User Screen</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <Icon name="magnifying-glass" size={20} color="#888" style={styles.searchIcon} />
+          <TextInput placeholder="Search" style={styles.searchInput} />
+        </View>
+      </View>
+
+      {/* Categories */}
+      <Text style={styles.sectionTitle}>Categories</Text>
+      <View style={styles.categoryContainer}>
+        {categories.map((category) => (
+          <View key={category.id} style={styles.categoryItem}>
+            <Text style={styles.categoryIcon}>{category.icon}</Text>
+            <Text style={styles.categoryText}>{category.name}</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Featured Products */}
+      <Text style={styles.sectionTitle}>Featured Products</Text>
+      <FlatList
+        data={products}
+        numColumns={2}
+        renderItem={({ item }) => (
+          <View style={styles.productCard}>
+            <Image source={item.image} style={styles.productImage} />
+            <Text style={styles.productName}>{item.name}</Text>
+            <Text style={styles.productPrice}>{item.price}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+      />
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
-  viewStyle: {
-    display: "flex",
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F8F8",
+    paddingHorizontal: 10,
+  },
+  searchContainer: {
+    marginVertical: 10,
+  },
+  searchInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  searchInput: {
+    flex: 1,
+    padding: 10,
+    fontSize: 14,
+  },
+  searchIcon: {
+    marginRight: 5,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 10,
+  },
+  categoryContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  categoryItem: {
+    backgroundColor: "#FFF",
+    width: 80,
+    height: 80,
+    borderRadius: 35, // Makes the shape circular
     justifyContent: "center",
     alignItems: "center",
-    flex: 1,
-    backgroundColor: "#DFE8D8",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
   },
-  textStyle: {
-    fontSize: 28,
-    color: "black",
-  },
-  headingStyle: {
+  categoryIcon: {
     fontSize: 30,
-    color: "black",
+  },
+  categoryText: {
+    marginTop: 5,
+    fontSize: 12,
     textAlign: "center",
   },
+  productCard: {
+    backgroundColor: "#FFF",
+    flex: 1,
+    margin: 5,
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    elevation: 3,
+  },
+  productImage: {
+    width: 100,
+    height: 100,
+    resizeMode: "contain",
+  },
+  productName: {
+    fontSize: 14,
+    marginTop: 10,
+  },
+  productPrice: {
+    fontSize: 12,
+    color: "green",
+    marginTop: 5,
+  },
 });
+
 export default UserScreen;
