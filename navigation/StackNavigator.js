@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Stack } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
@@ -10,6 +10,16 @@ import SelectImageScreen from "../screens/SelectImageScreen";
 import PreFinalScreen from "../screens/PreFinalScreen";
 import { AuthContext } from "../auth/AuthContext";
 import SplashScreen from "../screens/SplashView";
+
+import UserScreen from "../screens/UserScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import HistoryScreen from "../screens/HistoryScreen";
+import OrderScreen from "../screens/OrderScreen";
+import PayScreen from "../screens/PayScreen";
+import DrawerContent from "../components/DrawerContent";
+import Entypo from "react-native-vector-icons/Entypo";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -26,28 +36,96 @@ const StackNavigator = () => {
 
     return () => clearTimeout(timer); // Clean up timer on component unmount
   }, []);
+  const Drawer = createDrawerNavigator();
+  const Tab = createBottomTabNavigator();
+
+  // Drawer Navigator (Side Navigation)
+  const DrawerNav = () => {
+    return (
+      <Drawer.Navigator
+        screenOptions={{
+          headerShown: false, // Disable header for Drawer Navigator
+        }}
+        drawerContent={(props) => <DrawerContent {...props} />} // Use custom DrawerContent
+      >
+        <Drawer.Screen
+          name="User"
+          component={UserScreen}
+          options={{ headerShown: false }}
+        />
+        <Drawer.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{ headerShown: false }}
+        />
+        <Drawer.Screen
+          name="History"
+          component={HistoryScreen}
+          options={{ headerShown: false }}
+        />
+      </Drawer.Navigator>
+    );
+  };
+
+  // Bottom Tab Navigator (Home, Order, Pay)
+  const TabNav = () => {
+    return (
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ color, size }) => {
+            let iconName;
+
+            if (route.name === "Home") {
+              iconName = "home";
+            } else if (route.name === "Order") {
+              iconName = "shopping-bag";
+            } else if (route.name === "Pay") {
+              iconName = "credit-card";
+            }
+return <Entypo name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: "#013220",
+          tabBarInactiveTintColor: "gray",
+          headerShown: route.name !== "Home",
+        })}
+      >
+        <Tab.Screen
+          name="Home"
+          component={DrawerNav}
+          options={{ headerShown: false }}
+        />
+        <Tab.Screen
+          name="Order"
+          component={OrderScreen}
+          options={{ headerShown: false }}
+        />
+        <Tab.Screen
+          name="Pay"
+          component={PayScreen}
+          options={{ headerShown: false }}
+        />
+      </Tab.Navigator>
+    );
+  };
   const MainStack = () => {
     return (
       <Stack.Navigator>
+        <Stack.Screen
+          name="Main"
+          component={TabNav}
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="User" component={UserScreen} options={{}} />
       </Stack.Navigator>
     );
   };
-  // const SplashStack = () => {
-  //   return (
-  //     <Stack.Navigator>
-  //       <Stack.Screen
-  //         name="Splash"
-  //         component={SplashScreen}
-  //         options={{ headerShown: false }}
-  //       />
-  //     </Stack.Navigator>
-  //   );
-  // };
 
   const AuthStack = () => {
     return (
@@ -77,10 +155,12 @@ const StackNavigator = () => {
   };
   return (
     <NavigationContainer>
-      {isSplashVisible ? ( // Render SplashScreen while isSplashVisible is true
-       <SplashScreen/>
+      {isSplashVisible ? (
+        <SplashScreen />
+      ) : token == null || token == "" ? (
+        <AuthStack />
       ) : (
-       <MainStack/>
+        <MainStack />
       )}
     </NavigationContainer>
   );
