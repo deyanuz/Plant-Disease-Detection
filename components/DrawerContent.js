@@ -3,14 +3,15 @@ import React, { useContext } from "react";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 
 import { View, TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
-import { Avatar, Title, Caption } from "react-native-paper"; // For Avatar
-import { useNavigation } from "@react-navigation/native"; // To navigate
+import { Avatar, Title, Caption } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../auth/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DrawerContent = (props) => {
   const navigation = useNavigation();
-  const { token, setToken } = useContext(AuthContext);
+  const { token, setToken, userImage, userEmail, userName } =
+    useContext(AuthContext);
   const signOutAndClearAuthToken = async () => {
     try {
       await AsyncStorage.removeItem("token");
@@ -30,7 +31,6 @@ const DrawerContent = (props) => {
       }
     }
   };
-
   return (
     <View style={styles.container}>
       <View style={styles.userInfoSection}>
@@ -38,44 +38,47 @@ const DrawerContent = (props) => {
           <View style={{ flexDirection: "row", marginTop: 15 }}>
             <Avatar.Image
               source={{
-                uri: "",
+                uri: userImage,
               }}
               size={50}
             />
             <View style={{ marginLeft: 10 }}>
-              <Title style={styles.title}>khan</Title>
-              <Caption style={styles.caption}>khan@gmail.com</Caption>
+              <Title style={styles.title}>{userName}</Title>
+              <Caption style={styles.caption}>{userEmail}</Caption>
             </View>
           </View>
         </TouchableOpacity>
       </View>
-{/* Drawer Items */}
-      <DrawerContentScrollView {...props}>
+
+      <DrawerContentScrollView
+        {...props}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
         <View style={styles.drawerItems}>
-          {/* Add your drawer screens here */}
-          <TouchableOpacity
-            onPress={() => {
-              // You can navigate to other screens here if needed
-              props.navigation.navigate("User");
-            }}
-          >
-            <Text style={styles.drawerItem}>User</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              props.navigation.navigate("Profile");
-            }}
-          >
-            <Text style={styles.drawerItem}>Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              props.navigation.navigate("History");
-            }}
-          >
-            <Text style={styles.drawerItem}>History</Text>
-          </TouchableOpacity>
-          {/* Sign-out button */}
+          <View>
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate("User");
+              }}
+            >
+              <Text style={styles.drawerItem}>User</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate("Profile");
+              }}
+            >
+              <Text style={styles.drawerItem}>Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate("History");
+              }}
+            >
+              <Text style={styles.drawerItem}>History</Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             onPress={signOutAndClearAuthToken}
             style={styles.signOutButton}
@@ -91,6 +94,8 @@ const DrawerContent = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: "left",
+    justifyContent: "space-outer",
   },
   userInfoSection: {
     paddingLeft: 20,
@@ -106,6 +111,8 @@ const styles = StyleSheet.create({
   },
   drawerItems: {
     paddingTop: 20,
+    flex: 1,
+    justifyContent: "space-between",
   },
   drawerItem: {
     fontSize: 16,
@@ -117,6 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#013220",
     marginTop: 20,
     borderRadius: 10,
+    marginBottom: 25,
   },
   signOutText: {
     color: "white",
