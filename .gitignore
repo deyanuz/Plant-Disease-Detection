@@ -33,3 +33,10 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+#uploaded images
+api/uploads/*
+!api/uploads/.gitkeep
+
+#python
+__pycache__/

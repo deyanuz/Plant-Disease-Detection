@@ -3,10 +3,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-
-import Ionicons from "react-native-vector-icons/Ionicons";
-
-
 import CartScreen from "../screens/CartScreen";
 import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -21,12 +17,13 @@ import ProfileScreen from "../screens/ProfileScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import OrderScreen from "../screens/OrderScreen";
 import PayScreen from "../screens/PayScreen";
+import DetectScreen from "../screens/DetectScreen";
 import DrawerContent from "../components/DrawerContent";
 import Entypo from "react-native-vector-icons/Entypo";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import Chatbot from "../screens/Chatbot";
+import Chatbot from "../screens/ChatbotScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -52,20 +49,37 @@ const StackNavigator = () => {
       <Drawer.Navigator
         screenOptions={({ navigation }) => ({
           statusBarColor: "#013220",
-          headerStyle: { backgroundColor: "#013220" },
-          headerTintColor: "#fff",
+          headerStyle: { backgroundColor: "#F8F8F8", elevation: 0 },
+          headerTintColor: "#000",
           headerTitleAlign: "center",
           headerLeft: () => (
             <Pressable onPress={() => navigation.toggleDrawer()}>
-              <Entypo name="menu" size={30} color="#fff" style={{ marginLeft: 10 }} />
+              <Entypo
+                name="menu"
+                size={30}
+                color="#000"
+                style={{ marginLeft: 10 }}
+              />
             </Pressable>
           ),
         })}
         drawerContent={(props) => <DrawerContent {...props} />}
       >
-        <Drawer.Screen name="User" component={UserScreen} options={{ headerTitle: "User" }} />
-        <Drawer.Screen name="Profile" component={ProfileScreen} options={{ headerTitle: "Profile" }} />
-        <Drawer.Screen name="History" component={HistoryScreen} options={{ headerTitle: "History" }} />
+        <Drawer.Screen
+          name="User"
+          component={UserScreen}
+          options={{ headerTitle: "User" }}
+        />
+        <Drawer.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{ headerTitle: "Profile" }}
+        />
+        <Drawer.Screen
+          name="History"
+          component={HistoryScreen}
+          options={{ headerTitle: "History" }}
+        />
       </Drawer.Navigator>
     );
   };
@@ -78,11 +92,11 @@ const StackNavigator = () => {
           tabBarIcon: ({ color, size }) => {
             let iconName;
             let IconComponent; // To dynamically select the icon library
-          
+
             if (route.name === "Home") {
               iconName = "home";
               IconComponent = Entypo; // Icon from Entypo
-            } else if (route.name === "chatbot") {
+            } else if (route.name === "Chatbot") {
               iconName = "chat-processing-outline";
               IconComponent = MaterialCommunityIcons; // Icon from MaterialCommunityIcons
             } else if (route.name === "Order") {
@@ -92,10 +106,10 @@ const StackNavigator = () => {
               iconName = "credit-card";
               IconComponent = Entypo; // Icon from Entypo
             }
-          
+
             return <IconComponent name={iconName} size={size} color={color} />;
           },
-          
+
           tabBarActiveTintColor: "#013220",
           tabBarInactiveTintColor: "gray",
           headerShown: route.name !== "Home",
@@ -105,11 +119,12 @@ const StackNavigator = () => {
         })}
       >
         <Tab.Screen name="Home" component={DrawerNav} options={{ headerShown: false }} />
-        <Tab.Screen name="chatbot" component={Chatbot} options={{ headerShown: false }} />
+        <Tab.Screen name="Chatbot" component={Chatbot} options={{ headerShown: false }} />
         <Tab.Screen
           name="Camera"
-          component={SelectImageScreen}
+          component={DetectScreen}
           options={{
+            headerShown: false,
             tabBarButton: (props) => (
               <Pressable
                 style={[styles.cameraButton, styles.shadow]}
@@ -120,8 +135,16 @@ const StackNavigator = () => {
             ),
           }}
         />
-        <Tab.Screen name="Order" component={OrderScreen} options={{ headerShown: false }} />
-        <Tab.Screen name="Pay" component={PayScreen} options={{ headerShown: false }} />
+        <Tab.Screen
+          name="Order"
+          component={OrderScreen}
+          options={{ headerShown: false }}
+        />
+        <Tab.Screen
+          name="Pay"
+          component={PayScreen}
+          options={{ headerShown: false }}
+        />
       </Tab.Navigator>
     );
   };
@@ -155,10 +178,26 @@ const StackNavigator = () => {
   const AuthStack = () => {
     return (
       <Stack.Navigator>
-        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Image" component={SelectImageScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="PreFinal" component={PreFinalScreen} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Image"
+          component={SelectImageScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="PreFinal"
+          component={PreFinalScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     );
   };
