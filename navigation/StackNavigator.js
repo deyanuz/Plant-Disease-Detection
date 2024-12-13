@@ -7,7 +7,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 
-
+import CartScreen from "../screens/CartScreen";
 import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
@@ -15,7 +15,7 @@ import SelectImageScreen from "../screens/SelectImageScreen";
 import PreFinalScreen from "../screens/PreFinalScreen";
 import { AuthContext } from "../auth/AuthContext";
 import SplashScreen from "../screens/SplashView";
-
+import ProductDetailsScreen from "../screens/ProductDetailsScreen"; 
 import UserScreen from "../screens/UserScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import HistoryScreen from "../screens/HistoryScreen";
@@ -25,7 +25,8 @@ import DrawerContent from "../components/DrawerContent";
 import Entypo from "react-native-vector-icons/Entypo";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import chatbot from "../screens/chatbot";
+
+import Chatbot from "../screens/Chatbot";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -104,7 +105,7 @@ const StackNavigator = () => {
         })}
       >
         <Tab.Screen name="Home" component={DrawerNav} options={{ headerShown: false }} />
-        <Tab.Screen name="chatbot" component={chatbot} options={{ headerShown: false }} />
+        <Tab.Screen name="chatbot" component={Chatbot} options={{ headerShown: false }} />
         <Tab.Screen
           name="Camera"
           component={SelectImageScreen}
@@ -137,6 +138,16 @@ const StackNavigator = () => {
         />
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="User" component={UserScreen} options={{}} />
+        <Stack.Screen
+        name="ProductDetails"
+        component={ProductDetailsScreen}
+        options={{ headerTitle: "Product Details" }}
+      />
+       <Stack.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{ headerTitle: "My Cart" }}
+      />
       </Stack.Navigator>
     );
   };

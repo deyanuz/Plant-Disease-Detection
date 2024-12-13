@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Button, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Entypo from "react-native-vector-icons/Entypo";
 
-const chatbot = ({ navigation }) => {
+const Chatbot = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.viewStyle}>
       
@@ -27,4 +27,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-export default chatbot;
+export default Chatbot;
