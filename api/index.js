@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const tf = require("@tensorflow/tfjs-node");
 const { FIREBASE_AUTH } = require("../auth/FirebaseConfig");
 const User = require("./models/user");
+const Detection = require("./models/detection");
 const crypto = require("crypto");
 const cors = require("cors");
 const multer = require("multer");
@@ -150,9 +151,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
         }
       };
     const imageBuffer = fs.readFileSync(newFilePath);
-    const resizedBuffer = await sharp(imageBuffer)
-      .resize(224, 224) // Resize to 224x224
-      .toBuffer();
+    const resizedBuffer = await sharp(imageBuffer).resize(224, 224).toBuffer();
 
     // Decode the resized image
     const decodedImage = tf.node.decodeImage(resizedBuffer, 3); // Decode to RGB
@@ -170,11 +169,27 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     const predictions = model.predict(inputTensor);
 
     // Step 4: Get class with the highest confidence
-    const outputData = predictions.arraySync()[0]; // Assuming model outputs a 1D array
+    const outputData = predictions.arraySync()[0];
     console.log(outputData);
     const maxIndex = outputData.indexOf(Math.max(...outputData));
     const predictedClass = CLASS_NAMES[maxIndex];
     const confidence = parseFloat((outputData[maxIndex] * 100).toFixed(3));
+
+    //save prediction
+    try {
+      const detection = new Detection({
+        userID: userID,
+        imagePath: newFilePath,
+        predictionClass: predictedClass,
+        confidence: confidence,
+      });
+
+      const savedDetection = await detection.save();
+      console.log("Detection saved:", savedDetection);
+    } catch (error) {
+      console.error("Error saving detection:", error);
+      return res.status(500).json({ error: "Server error" });
+    }
 
     // Return the class name and confidence
     console.log(predictedClass);
@@ -182,5 +197,21 @@ app.post("/detect", upload.single("image"), async (req, res) => {
   } catch (error) {
     console.error("Error during file upload:", error);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/:userID/detections", async (req, res) => {
+  try {
+    const { userID } = req.params;
+    const detections = await Detection.find({ userID }); // Filter by userID
+    console.log(`Detections for userID ${userID}:`, detections);
+
+    if (!detections) {
+      return res.status(400).json({ message: "No detections yet" });
+    }
+    return res.json(detections);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: error });
   }
 });
