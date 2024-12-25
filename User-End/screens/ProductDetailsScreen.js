@@ -1,10 +1,18 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
-const ProductDetailsScreen = ({ route, navigation }) => {
+const ProductDetailsScreen = ({ route }) => {
   const { product } = route.params;
-
+  const navigation = useNavigation();
   const [rating, setRating] = useState(4); // Default rating
 
   const relatedProducts = [
@@ -12,25 +20,29 @@ const ProductDetailsScreen = ({ route, navigation }) => {
       id: 1,
       name: "Rice Seeds",
       price: "₹20.99",
-      image: "https://media.istockphoto.com/id/1681725184/photo/rice.jpg?s=2048x2048&w=is&k=20&c=Ibpv_PUMmFVmi1yqeGt4D3hK4hg0Jus4uczuCVu0cNY=",
+      image:
+        "https://media.istockphoto.com/id/1681725184/photo/rice.jpg?s=2048x2048&w=is&k=20&c=Ibpv_PUMmFVmi1yqeGt4D3hK4hg0Jus4uczuCVu0cNY=",
     },
     {
       id: 2,
       name: "Jute Seeds",
       price: "₹13.99",
-      image: "https://media.istockphoto.com/id/1433096076/photo/soybean-grain-in-a-hands-of-successful-farmer.jpg?s=2048x2048&w=is&k=20&c=8XLqWLjlZA4sTgEyKEEVb9-Uq9O4eBG4zG4Iuru2EBg=",
+      image:
+        "https://media.istockphoto.com/id/1433096076/photo/soybean-grain-in-a-hands-of-successful-farmer.jpg?s=2048x2048&w=is&k=20&c=8XLqWLjlZA4sTgEyKEEVb9-Uq9O4eBG4zG4Iuru2EBg=",
     },
     {
       id: 3,
       name: "Strawberry Seeds",
       price: "₹24.99",
-      image: "https://media.istockphoto.com/id/1157946861/photo/red-berry-strawberry-isolated.jpg?s=2048x2048&w=is&k=20&c=1E-5CHWTvhWJPt7M9TfSYUwZE3_WRvmLobGDRlHRQ-U=",
+      image:
+        "https://media.istockphoto.com/id/1157946861/photo/red-berry-strawberry-isolated.jpg?s=2048x2048&w=is&k=20&c=1E-5CHWTvhWJPt7M9TfSYUwZE3_WRvmLobGDRlHRQ-U=",
     },
     {
       id: 4,
       name: "Tomato Seeds",
       price: "₹28.99",
-      image: "https://media.istockphoto.com/id/1320269431/photo/tomato-seed-collection.jpg?s=1024x1024&w=is&k=20&c=4uSQMx_1Q7a4MA4J5aq3ECOpKOX9sjqsbFuztK1MK38=",
+      image:
+        "https://media.istockphoto.com/id/1320269431/photo/tomato-seed-collection.jpg?s=1024x1024&w=is&k=20&c=4uSQMx_1Q7a4MA4J5aq3ECOpKOX9sjqsbFuztK1MK38=",
     },
   ];
 
@@ -65,22 +77,21 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
         {/* Add to Basket Button */}
         <TouchableOpacity
-  style={styles.addToBasketButton}
-  onPress={() => {
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      quantity: 1,
-    };
-    console.log("Navigating to Cart with:", cartItem); // Debug log
-    navigation.navigate("Cart", { cartItems: [cartItem] });
-  }}
->
-  <Text style={styles.addToBasketText}>Add to Basket</Text>
-</TouchableOpacity>
-
+          style={styles.addToBasketButton}
+          onPress={() => {
+            const cartItem = {
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+              quantity: 1,
+            };
+            console.log("Navigating to Cart with:", cartItem); // Debug log
+            navigation.navigate("Cart", { cartItems: [cartItem] });
+          }}
+        >
+          <Text style={styles.addToBasketText}>Add to Basket</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Related Products */}
@@ -90,7 +101,10 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         horizontal
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.relatedProductCard}>
-            <Image source={{ uri: item.image }} style={styles.relatedProductImage} />
+            <Image
+              source={{ uri: item.image }}
+              style={styles.relatedProductImage}
+            />
             <View style={styles.overlay}>
               <Text style={styles.overlayText}>{item.name}</Text>
             </View>

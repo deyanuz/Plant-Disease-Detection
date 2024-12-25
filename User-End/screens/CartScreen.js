@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView } from "react-native";
 
 const CartScreen = ({ route, navigation }) => {
   const { cartItems: initialCartItems } = route.params;
@@ -28,9 +28,9 @@ const CartScreen = ({ route, navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
-      {/* Cart Items */}
-      <View style={styles.cartContainer}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Cart Items */}
         <FlatList
           data={cartItems}
           keyExtractor={(item) => item.id.toString()}
@@ -69,28 +69,30 @@ const CartScreen = ({ route, navigation }) => {
           )}
           contentContainerStyle={styles.listContent}
         />
-      </View>
 
-      {/* Checkout Button */}
-      <TouchableOpacity
-        style={styles.checkoutButton}
-        onPress={() => alert("Proceed to Checkout")}
-      >
-        <Text style={styles.checkoutText}>Go to Checkout</Text>
-        <Text style={styles.checkoutPrice}>₹{totalPrice.toFixed(2)}</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Checkout Button */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.checkoutButton}
+            onPress={() => alert("Proceed to Checkout")}
+          >
+            <Text style={styles.checkoutText}>Go to Checkout</Text>
+            <Text style={styles.checkoutPrice}>₹{totalPrice.toFixed(2)}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#F8F8F8",
   },
-  cartContainer: {
-    flex: 1, // Ensures FlatList occupies only available space
-    paddingHorizontal: 10,
+  container: {
+    flex: 1,
+    justifyContent: "space-between", // Ensures proper spacing for FlatList and footer
   },
   cartItem: {
     flexDirection: "row",
@@ -141,7 +143,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   listContent: {
-    paddingBottom: 100, // Ensures space for the checkout button
+    paddingBottom: 100, // Adds space for the Checkout Button
+  },
+  footer: {
+    padding: 10,
+    backgroundColor: "#FFF",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
   },
   checkoutButton: {
     backgroundColor: "#28a745",
@@ -151,7 +159,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    margin: 10,
   },
   checkoutText: {
     color: "#FFF",

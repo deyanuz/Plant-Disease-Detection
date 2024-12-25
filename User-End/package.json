@@ -16,6 +16,7 @@
     "@react-navigation/drawer": "^7.0.7",
     "@react-navigation/native": "^7.0.4",
     "@react-navigation/native-stack": "^7.1.0",
+    "@stripe/stripe-react-native": "^0.41.0",
     "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-node": "^4.22.0",
     "axios": "^1.7.7",
@@ -23,6 +24,7 @@
     "expo-image-picker": "~16.0.3",
     "expo-permissions": "^14.4.0",
     "expo-status-bar": "~2.0.0",
+    "express": "^4.21.2",
     "firebase": "^11.0.2",
     "jwt-decode": "^4.0.0",
     "multer": "^1.4.5-lts.1",
@@ -33,7 +35,9 @@
     "react-native-paper": "^5.12.5",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "^4.14.0",
-    "react-native-screens": "^4.3.0"
+    "react-native-screens": "^4.3.0",
+    "react-native-web": "~0.19.13",
+    "stripe": "^17.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0"
