@@ -1,16 +1,17 @@
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const tf = require("@tensorflow/tfjs-node");
 const { FIREBASE_AUTH } = require("../auth/FirebaseConfig");
 const User = require("./models/user");
 const Detection = require("./models/detection");
 const crypto = require("crypto");
-const cors = require("cors");
+const Product = require("./models/product");
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
-
 const jwt = require("jsonwebtoken");
 const {
   createUserWithEmailAndPassword,
@@ -26,6 +27,133 @@ const port = 8000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+
+
+
+
+
+//stripe
+const Stripe = require("stripe");
+const stripe = Stripe("sk_test_51P9ieEFzDwwNH06pKTBJMPBXnwuX0DALPs5qwKe1REnFgNlrGfcfYzjGBapYinKyXVqujQkHNPxgyDHN3Q8btgPC00uSAdffOw"); // Replace with your Stripe secret key
+// Endpoint to Create Payment Intent
+app.post("/create-payment-intent", async (req, res) => {
+  try {
+    const { amount } = req.body; // Amount in cents (e.g., 2000 = $20.00)
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "usd", // Replace with your currency (e.g., "usd", "inr", etc.)
+      payment_method_types: ["card"],
+    });
+
+    res.status(200).json({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error("Error creating payment intent:", error);
+    res.status(500).json({ error: "Error creating payment intent" });
+  }
+});
+
+
+
+
+
+
+
+
+//productcreate
+app.post("/products", async (req, res) => {
+  try {
+    const { name, description, price, image, category, stock } = req.body;
+
+    const newProduct = new Product({
+      name,
+      description,
+      price,
+      image,
+      category,
+      stock,
+    });
+
+    const savedProduct = await newProduct.save();
+    res.status(201).json(savedProduct);
+  } catch (error) {
+    console.error("Error creating product:", error.message);
+    res.status(500).json({ error: "Failed to create product" });
+  }
+});
+//getallproduct
+app.get("/products", async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error.message);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+//get single product by id
+app.get("/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.status(200).json(product);
+  } catch (error) {
+    console.error("Error fetching product:", error.message);
+    res.status(500).json({ error: "Failed to fetch product" });
+  }
+});
+//update product
+app.put("/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
+      new: true, // Returns the updated document
+      runValidators: true, // Validates the updates against the schema
+    });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.status(200).json(updatedProduct);
+  } catch (error) {
+    console.error("Error updating product:", error.message);
+    res.status(500).json({ error: "Failed to update product" });
+  }
+});
+//delete product
+app.put("/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
+      new: true, // Returns the updated document
+      runValidators: true, // Validates the updates against the schema
+    });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.status(200).json(updatedProduct);
+  } catch (error) {
+    console.error("Error updating product:", error.message);
+    res.status(500).json({ error: "Failed to update product" });
+  }
+});
+
+
+
+
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
