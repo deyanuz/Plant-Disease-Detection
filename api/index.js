@@ -84,7 +84,16 @@ app.post("/register", async (req, res) => {
       return res.status(401).json({ message: "server error" });
     }
     const secretKey = crypto.randomBytes(32).toString("hex");
-    const token = jwt.sign({ userID: newUser._id }, secretKey);
+    const token = jwt.sign(
+      {
+        userID: newUser._id,
+        image: newUser.image,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+      },
+      secretKey
+    );
     return res.status(200).json(token);
   } catch (error) {
     console.error(error);
