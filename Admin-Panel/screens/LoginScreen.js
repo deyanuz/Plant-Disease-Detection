@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   SafeAreaView,
   Text,
@@ -6,13 +6,21 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  View,
 } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import IpAddress from "../DeviceConfig";
+import { useNavigation } from "@react-navigation/native";
+import { AuthContext } from "../auth/AuthContext";
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigation = useNavigation();
+  const { token, setToken } = useContext(AuthContext);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -21,15 +29,18 @@ const LoginScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await axios.post("http://192.168.0.114:9000/admin/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        `http://${IpAddress}:9000/admin/login`,
+        {
+          email,
+          password,
+        }
+      );
 
       const { token } = response.data;
       await AsyncStorage.setItem("adminToken", token); // Save the token
+      setToken(token);
       Alert.alert("Success", "Login successful!");
-      navigation.navigate("Dashboard"); // Navigate to the dashboard
     } catch (error) {
       console.error(error);
       const message =
@@ -48,13 +59,44 @@ const LoginScreen = ({ navigation }) => {
         onChangeText={setEmail}
         keyboardType="email-address"
       />
-      <TextInput
+      {/* <TextInput
         style={styles.input}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-      />
+      /> */}
+      <View
+        style={{
+          flexDirection: "row",
+          borderColor: "#ccc",
+          borderWidth: 1,
+          marginBottom: 10,
+          borderRadius: 10,
+        }}
+      >
+        <TextInput
+          secureTextEntry={!isPasswordVisible}
+          placeholder="Password"
+          style={{
+            flex: 1,
+            padding: 15,
+            fontSize: 15,
+          }}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity
+          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+          style={{ paddingRight: 10, alignSelf: "center" }}
+        >
+          <Ionicons
+            name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+            size={26}
+            color="#bebebe"
+          />
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
@@ -82,6 +124,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 10,
     marginBottom: 10,
+    fontSize: 15,
   },
   button: {
     width: "100%",
