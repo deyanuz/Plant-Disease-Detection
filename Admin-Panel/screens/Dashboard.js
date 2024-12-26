@@ -1,16 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { SafeAreaView, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  SafeAreaView,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { AuthContext } from "../auth/AuthContext";
 
-const Dashboard = ({ navigation }) => {
-  const [adminToken, setAdminToken] = useState("");
-
+const Dashboard = () => {
+  const { token, setToken } = useContext(AuthContext);
+  const navigation = useNavigation();
   useEffect(() => {
     const fetchToken = async () => {
       const token = await AsyncStorage.getItem("adminToken");
       if (!token) {
-        Alert.alert("Error", "Unauthorized access.");
-        navigation.navigate("Login");
+        navigation.replace("AuthStack", { screen: "Login" });
       }
       setAdminToken(token);
     };
@@ -19,8 +26,8 @@ const Dashboard = ({ navigation }) => {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("adminToken");
+    setToken("");
     Alert.alert("Success", "You have logged out.");
-    navigation.navigate("Login");
   };
 
   return (
