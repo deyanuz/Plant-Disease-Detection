@@ -5,7 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import LoginScreen from "../screens/LoginScreen";
 import { AuthContext } from "../auth/AuthContext";
 import Dashboard from "../screens/Dashboard";
-
+import BottomTabs from "./BottomTabs";
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const { token } = useContext(AuthContext);
@@ -25,11 +25,9 @@ const StackNavigator = () => {
     return (
       <Stack.Navigator>
         <Stack.Screen
-          name="Dashboard"
-          component={Dashboard}
-          options={{
-            headerShown: false,
-          }}
+          name="MainTabs"
+          component={BottomTabs}
+          options={{ headerShown: false }} // Hide header for the BottomTabs
         />
       </Stack.Navigator>
     );
