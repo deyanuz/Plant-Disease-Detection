@@ -10,24 +10,30 @@ import {
   ActivityIndicator,
   View,
 } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import axios from "axios";
-import BASE_URL from "../DeviceConfig"; // Import your API base URL
+
+const BASE_URL = "http://192.168.0.101:9000"; // Replace with your server URL
 
 const AddAdmin = () => {
-  const [admins, setAdmins] = useState([]); // Admin list
-  const [newAdminEmail, setNewAdminEmail] = useState(""); // New admin email
-  const [loading, setLoading] = useState(true); // Loading state
+  const [admins, setAdmins] = useState([]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
 
   useEffect(() => {
     fetchAdmins();
   }, []);
 
-  // Fetch Admins from the backend
   const fetchAdmins = async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${BASE_URL}/admins`);
-      setAdmins(response.data); // Populate admin list
+      setAdmins(response.data);
     } catch (error) {
       console.error("Error fetching admins:", error);
       Alert.alert("Error", "Failed to fetch admins. Please try again.");
@@ -36,25 +42,32 @@ const AddAdmin = () => {
     }
   };
 
-  // Add a new admin
   const handleAddAdmin = async () => {
-    if (!newAdminEmail.trim()) {
-      Alert.alert("Error", "Please enter an email.");
+    if (!newAdminEmail.trim() || !password.trim() || !confirmPassword.trim()) {
+      Alert.alert("Error", "Please fill all fields.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
     try {
-      await axios.post(`${BASE_URL}/admins`, { email: newAdminEmail });
+      await axios.post(`${BASE_URL}/admins`, {
+        email: newAdminEmail,
+        password,
+      });
       Alert.alert("Success", "Admin added successfully!");
-      setNewAdminEmail(""); // Clear input field
-      fetchAdmins(); // Refresh admin list
+      setNewAdminEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      fetchAdmins();
     } catch (error) {
       console.error("Error adding admin:", error);
       Alert.alert("Error", "Failed to add admin. Please try again.");
     }
   };
 
-  // Delete an admin
   const handleDeleteAdmin = async (id, isPrimary) => {
     if (isPrimary) {
       Alert.alert("Error", "The primary admin cannot be deleted.");
@@ -64,25 +77,16 @@ const AddAdmin = () => {
     try {
       await axios.delete(`${BASE_URL}/admins/${id}`);
       Alert.alert("Success", "Admin deleted successfully!");
-      fetchAdmins(); // Refresh admin list
+      fetchAdmins();
     } catch (error) {
       console.error("Error deleting admin:", error);
       Alert.alert("Error", "Failed to delete admin. Please try again.");
     }
   };
 
-  // Render an admin item
   const renderAdminItem = ({ item }) => (
     <View style={styles.adminItem}>
       <Text style={styles.adminEmail}>{item.email}</Text>
-      {!item.isPrimary && ( // Show delete button only for non-primary admins
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteAdmin(item._id, item.isPrimary)}
-        >
-          <Text style={styles.deleteButtonText}>Delete</Text>
-        </TouchableOpacity>
-      )}
       {item.isPrimary && (
         <Text style={styles.primaryLabel}>Primary Admin</Text>
       )}
@@ -93,23 +97,61 @@ const AddAdmin = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Admin Management</Text>
 
-      {/* Add Admin Section */}
       <View style={styles.addAdminContainer}>
         <TextInput
           style={styles.input}
           placeholder="Enter new admin email"
           value={newAdminEmail}
           onChangeText={setNewAdminEmail}
+          keyboardType="email-address"
         />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Password"
+            secureTextEntry={!isPasswordVisible}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+          >
+            <Ionicons
+              name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+              size={20}
+              color="#aaa"
+            />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Confirm Password"
+            secureTextEntry={!isConfirmPasswordVisible}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+          <TouchableOpacity
+            onPress={() =>
+              setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
+            }
+          >
+            <Ionicons
+              name={
+                isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"
+              }
+              size={20}
+              color="#aaa"
+            />
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
           <Text style={styles.addButtonText}>Add Admin</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Loading Indicator */}
       {loading && <ActivityIndicator size="large" color="#4CAF50" />}
 
-      {/* Admin List */}
       {!loading && (
         <FlatList
           data={admins}
@@ -137,49 +179,54 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   addAdminContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     marginBottom: 20,
   },
   input: {
-    flex: 1,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 15,
+    fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 15,
+  },
+  inputPassword: {
+    flex: 1,
+    fontSize: 16,
   },
   addButton: {
     backgroundColor: "#4CAF50",
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: "center",
   },
   addButtonText: {
     color: "#fff",
     fontWeight: "bold",
+    fontSize: 16,
   },
   adminItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     padding: 15,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 5,
+    borderRadius: 10,
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   adminEmail: {
     fontSize: 16,
-  },
-  deleteButton: {
-    backgroundColor: "#FF6F61",
-    padding: 10,
-    borderRadius: 5,
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: "#333",
   },
   primaryLabel: {
     fontSize: 14,
