@@ -6,7 +6,7 @@ import AddAdmin from "../screens/AddAdmin";
 import ManageProducts from "../screens/ManageProducts";
 import UserHistory from "../screens/UserHistory";
 import ManageOrders from "../screens/ManageOrders";
-
+import AddProduct from "../screens/AddProduct";
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => (
@@ -39,7 +39,7 @@ const BottomTabs = () => (
         else if (route.name === "Manage Products") iconName = "cart-outline";
         else if (route.name === "User History") iconName = "time-outline";
         else if (route.name === "Manage Orders") iconName = "clipboard-outline";
-  
+        else if (route.name === "Add Products") iconName = "cart-outline";
         return <Ionicons name={iconName} size={size} color={color} />;
       },
     })}
@@ -48,6 +48,7 @@ const BottomTabs = () => (
     <Tab.Screen name="Dashboard" component={Dashboard} />
     <Tab.Screen name="Add Admin" component={AddAdmin} />
     <Tab.Screen name="Manage Products" component={ManageProducts} />
+    <Tab.Screen name="Add Products" component={AddProduct} />
     <Tab.Screen name="User History" component={UserHistory} />
     <Tab.Screen name="Manage Orders" component={ManageOrders} />
   </Tab.Navigator>
