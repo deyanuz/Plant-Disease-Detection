@@ -52,7 +52,7 @@ const Dashboard = () => {
         <View style={styles.header}>
           <View>
             <Text style={styles.welcomeText}>Welcome Back,</Text>
-            <Text style={styles.adminName}>Admin Name</Text>
+            <Text style={styles.adminName}>Admin</Text>
           </View>
           <Ionicons name="person-circle-outline" size={50} color="#fff" />
         </View>

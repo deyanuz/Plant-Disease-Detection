@@ -2,10 +2,9 @@ const mongoose = require("mongoose");
 const Admin = require("./models/admin");
 
 mongoose
-  .connect(
-    "mongodb+srv://khansumzunofficial:1234@plant-disease.opjv1.mongodb.net/plant-disease?retryWrites=true&w=majority",
-    { dbName: "plant-disease" }
-  )
+.connect(
+  "mongodb+srv://khansumzunofficial:1234@plant-disease.opjv1.mongodb.net/?retryWrites=true&w=majority&appName=plant-disease"
+)
   .then(async () => {
     console.log("MongoDB connected");
 
