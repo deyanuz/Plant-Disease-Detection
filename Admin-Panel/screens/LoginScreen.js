@@ -27,20 +27,18 @@ const LoginScreen = () => {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-
+  
     try {
-      const response = await axios.post(
-        `http://${IpAddress}:9000/admin/login`,
-        {
-          email,
-          password,
-        }
-      );
-
+      const response = await axios.post(`http://${IpAddress}:9000/admin/login`, {
+        email,
+        password,
+      });
+  
       const { token } = response.data;
       await AsyncStorage.setItem("adminToken", token); // Save the token
       setToken(token);
       Alert.alert("Success", "Login successful!");
+      navigation.replace("MainTabs"); // Ensure this matches your navigation stack
     } catch (error) {
       console.error(error);
       const message =
@@ -48,6 +46,7 @@ const LoginScreen = () => {
       Alert.alert("Error", message);
     }
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>

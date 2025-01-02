@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   SafeAreaView,
   Text,
@@ -6,38 +6,55 @@ import {
   StyleSheet,
   ScrollView,
   View,
+  Alert,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // For managing stored session tokens
+import { AuthContext } from "../auth/AuthContext"; // Assuming you use an AuthContext
 
-const Dashboard = () => {
+const Dashboard = ({ navigation }) => {
+  const { setToken } = useContext(AuthContext); // Access the AuthContext
+
+  const handleLogout = async () => {
+    try {
+      // Clear the stored token
+      await AsyncStorage.removeItem("adminToken");
+      setToken(null); // Update the token in AuthContext
+      navigation.replace("Login"); // Navigate to the login screen
+    } catch (error) {
+      console.error("Error logging out:", error);
+      Alert.alert("Error", "Failed to log out. Please try again.");
+    }
+  };
+
   const features = [
     {
       id: 1,
       title: "Add Admin",
       icon: "person-add-outline",
-      onPress: () => alert("Navigate to Add Admin"),
+      onPress: () => navigation.navigate("AddAdmin"), // Navigate to Add Admin screen
       color: "#FF6F61",
     },
     {
       id: 2,
       title: "Manage Products",
       icon: "cart-outline",
-      onPress: () => alert("Navigate to Manage Products"),
+      onPress: () => navigation.navigate("ManageProducts"), // Navigate to Manage Products screen
       color: "#FFD966",
     },
     {
       id: 3,
       title: "User History",
       icon: "time-outline",
-      onPress: () => alert("Navigate to User History"),
+      onPress: () => navigation.navigate("UserHistory"), // Navigate to User History screen
       color: "#6EB5FF",
     },
     {
       id: 4,
       title: "Manage Orders",
       icon: "clipboard-outline",
-      onPress: () => alert("Navigate to Manage Orders"),
+      onPress: () => navigation.navigate("ManageOrders"), // Navigate to Manage Orders screen
       color: "#71C567",
     },
   ];
@@ -52,9 +69,14 @@ const Dashboard = () => {
         <View style={styles.header}>
           <View>
             <Text style={styles.welcomeText}>Welcome Back,</Text>
-            <Text style={styles.adminName}>Admin Name</Text>
+            <Text style={styles.adminName}>Admin</Text>
           </View>
-          <Ionicons name="person-circle-outline" size={50} color="#fff" />
+          <View style={styles.headerIcons}>
+            <Ionicons name="person-circle-outline" size={50} color="#fff" />
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+              <Ionicons name="log-out-outline" size={30} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Analytics Section */}
@@ -108,6 +130,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   welcomeText: {
     color: "#fff",
     fontSize: 18,
@@ -117,6 +143,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 22,
     fontWeight: "bold",
+  },
+  logoutButton: {
+    marginLeft: 10,
+    backgroundColor: "#FF6F61",
+    padding: 8,
+    borderRadius: 10,
   },
   analyticsSection: {
     flexDirection: "row",

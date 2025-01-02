@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from "react-native";
 const ManageOrders = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Manage Products Screen</Text>
+      <Text style={styles.text}>Add  Screen</Text>
     </View>
   );
 };
