@@ -7,6 +7,7 @@ const User = require("./models/user");
 const Detection = require("./models/detection");
 const crypto = require("crypto");
 const Product = require("./models/product");
+const { HfInference } = require("@huggingface/inference");
 
 const multer = require("multer");
 const path = require("path");
@@ -24,6 +25,7 @@ const { default: axios } = require("axios");
 
 const app = express();
 const port = 8000;
+const hf = new HfInference("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");
 //stripe
 const stripe = Stripe(
   "sk_test_51P9ieEFzDwwNH06pKTBJMPBXnwuX0DALPs5qwKe1REnFgNlrGfcfYzjGBapYinKyXVqujQkHNPxgyDHN3Q8btgPC00uSAdffOw"
@@ -336,5 +338,28 @@ app.put("/products/:id", async (req, res) => {
   } catch (error) {
     console.error("Error updating product:", error.message);
     res.status(500).json({ error: "Failed to update product" });
+  }
+});
+
+app.post("/chatbot", async (req, res) => {
+  const { question } = req.body;
+  console.log(question);
+  try {
+    const response = await hf.textGeneration({
+      model: "facebook/blenderbot-400M-distill",
+      inputs: question,
+      parameters: {
+        max_length: 100,
+        min_length: 10,
+        temperature: 0.7,
+        top_k: 50,
+        top_p: 0.9,
+        repetition_penalty: 1.2,
+      },
+    });
+
+    res.json({ response: response.generated_text });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });

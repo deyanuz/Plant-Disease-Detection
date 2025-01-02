@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Entypo";
-import { StyleSheet, Text, View, FlatList, Image, TextInput, Pressable } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  Image,
+  TextInput,
+  Pressable,
+} from "react-native";
 
 const UserScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
@@ -21,42 +29,48 @@ const UserScreen = ({ navigation }) => {
           id: 1,
           name: "Rice Seeds",
           price: "$20.99/Kg",
-          image: "https://media.istockphoto.com/id/1681725184/photo/rice.jpg?s=2048x2048&w=is&k=20&c=Ibpv_PUMmFVmi1yqeGt4D3hK4hg0Jus4uczuCVu0cNY=",
+          image:
+            "https://media.istockphoto.com/id/1681725184/photo/rice.jpg?s=2048x2048&w=is&k=20&c=Ibpv_PUMmFVmi1yqeGt4D3hK4hg0Jus4uczuCVu0cNY=",
           description: "High-quality rice seeds for better yield.",
         },
         {
           id: 2,
           name: "Jute Seeds",
           price: "$13.99/Kg",
-          image: "https://media.istockphoto.com/id/1433096076/photo/soybean-grain-in-a-hands-of-successful-farmer.jpg?s=2048x2048&w=is&k=20&c=8XLqWLjlZA4sTgEyKEEVb9-Uq9O4eBG4zG4Iuru2EBg=",
+          image:
+            "https://media.istockphoto.com/id/1433096076/photo/soybean-grain-in-a-hands-of-successful-farmer.jpg?s=2048x2048&w=is&k=20&c=8XLqWLjlZA4sTgEyKEEVb9-Uq9O4eBG4zG4Iuru2EBg=",
           description: "Best jute seeds for your farming needs.",
         },
         {
           id: 3,
           name: "Strawberry Seeds",
           price: "$24.99/Kg",
-          image: "https://media.istockphoto.com/id/1157946861/photo/red-berry-strawberry-isolated.jpg?s=2048x2048&w=is&k=20&c=1E-5CHWTvhWJPt7M9TfSYUwZE3_WRvmLobGDRlHRQ-U=",
+          image:
+            "https://media.istockphoto.com/id/1157946861/photo/red-berry-strawberry-isolated.jpg?s=2048x2048&w=is&k=20&c=1E-5CHWTvhWJPt7M9TfSYUwZE3_WRvmLobGDRlHRQ-U=",
           description: "Premium strawberry seeds for delicious fruits.",
         },
         {
           id: 4,
           name: "Tomato Seeds",
           price: "$28.99/Kg",
-          image: "https://media.istockphoto.com/id/1320269431/photo/tomato-seed-collection.jpg?s=1024x1024&w=is&k=20&c=4uSQMx_1Q7a4MA4J5aq3ECOpKOX9sjqsbFuztK1MK38=",
+          image:
+            "https://media.istockphoto.com/id/1320269431/photo/tomato-seed-collection.jpg?s=1024x1024&w=is&k=20&c=4uSQMx_1Q7a4MA4J5aq3ECOpKOX9sjqsbFuztK1MK38=",
           description: "Grow juicy tomatoes with these seeds.",
         },
         {
           id: 5,
           name: "Potato Seeds",
           price: "$15.99/Kg",
-          image: "https://media.istockphoto.com/id/1459660565/photo/manual-planting-of-potato-tubers-in-the-ground-early-spring-preparation-for-the-garden-season.jpg?s=2048x2048&w=is&k=20&c=QSLciCCbCJG2iZxroqlyMmYZH2l-cHWLwxP3mh4x8tU=",
+          image:
+            "https://media.istockphoto.com/id/1459660565/photo/manual-planting-of-potato-tubers-in-the-ground-early-spring-preparation-for-the-garden-season.jpg?s=2048x2048&w=is&k=20&c=QSLciCCbCJG2iZxroqlyMmYZH2l-cHWLwxP3mh4x8tU=",
           description: "Potato seeds for the best crops.",
         },
         {
           id: 6,
           name: "Potato Seeds",
           price: "$15.99/Kg",
-          image: "https://media.istockphoto.com/id/1459660565/photo/manual-planting-of-potato-tubers-in-the-ground-early-spring-preparation-for-the-garden-season.jpg?s=2048x2048&w=is&k=20&c=QSLciCCbCJG2iZxroqlyMmYZH2l-cHWLwxP3mh4x8tU=",
+          image:
+            "https://media.istockphoto.com/id/1459660565/photo/manual-planting-of-potato-tubers-in-the-ground-early-spring-preparation-for-the-garden-season.jpg?s=2048x2048&w=is&k=20&c=QSLciCCbCJG2iZxroqlyMmYZH2l-cHWLwxP3mh4x8tU=",
           description: "Potato seeds for the best crops.",
         },
       ];
@@ -71,7 +85,12 @@ const UserScreen = ({ navigation }) => {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper}>
-          <Icon name="magnifying-glass" size={20} color="#888" style={styles.searchIcon} />
+          <Icon
+            name="magnifying-glass"
+            size={20}
+            color="#888"
+            style={styles.searchIcon}
+          />
           <TextInput placeholder="Search" style={styles.searchInput} />
         </View>
       </View>
@@ -92,10 +111,13 @@ const UserScreen = ({ navigation }) => {
       <FlatList
         data={products}
         numColumns={2}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <Pressable
             style={styles.productCard}
-            onPress={() => navigation.navigate("ProductDetails", { product: item })}
+            onPress={() =>
+              navigation.navigate("ProductDetails", { product: item })
+            }
           >
             <Image source={{ uri: item.image }} style={styles.productImage} />
             <View style={styles.productInfo}>
