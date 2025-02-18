@@ -1,6 +1,6 @@
 import {
   Platform,
-  Pressable,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity } from "react-native";
 import { getRegProgress, saveRegProgress } from "../registrationUtils";
+import IpAddress from "../DeviceConfig";
 
 const NameScreen = () => {
   const [email, setEmail] = useState("");
@@ -38,183 +39,190 @@ const NameScreen = () => {
   const next = () => {
     const trimmedEmail = email.trim();
     setEmail(trimmedEmail);
-    console.log(trimmedEmail + "a");
-    if (trimmedEmail !== "") {
-      saveRegProgress("Register", {
-        email: trimmedEmail,
-        firstName,
-        lastName,
-        password,
-        repeatPassword,
-      });
+
+    // Check if any required fields are empty
+    if (!trimmedEmail || !firstName || !password || !repeatPassword) {
+      alert("Please fill in all required fields");
+      return;
     }
+
+    // Check if passwords match
+    if (password !== repeatPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    // Save progress and continue
+    saveRegProgress("Register", {
+      email: trimmedEmail,
+      firstName,
+      lastName,
+      password,
+      repeatPassword,
+    });
     navigation.navigate("Image");
   };
+
+  const signUpWithGoogle = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+
+      // Get user info
+      const { email, familyName, givenName, photoUrl } = userInfo.user;
+
+      // Send token to backend
+      const response = await fetch(`http://${IpAddress}:3000/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          firstName: givenName,
+          lastName: familyName,
+          photoUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Google sign in failed");
+      }
+
+      const data = await response.json();
+
+      // Save user data
+      await AsyncStorage.setItem("userToken", data.token);
+      await AsyncStorage.setItem("userData", JSON.stringify(data.user));
+
+      // Navigate to next screen
+      navigation.navigate("Image");
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+      } else {
+        // some other error happened
+        console.error(error);
+      }
+    }
+  };
+
   return (
     <>
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: "white",
-        }}
-      >
-        <ScrollView style={{ marginBottom: 10 }}>
-          <View style={{ marginHorizontal: 10 }}>
-            <Ionicons name="arrow-back" size={25} color="black" />
-          </View>
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.scrollView}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={25} color="#013220" />
+          </TouchableOpacity>
 
-          <View style={{ marginHorizontal: 10, marginVertical: 15 }}>
-            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-              Complete your profile
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerText}>Create Account</Text>
+            <Text style={styles.subHeaderText}>
+              Please fill in the details below
             </Text>
           </View>
 
-          <View
-            style={{
-              backgroundColor: "white",
-              marginHorizontal: 10,
-              marginTop: 25,
-              gap: 20,
-              flexDirection: "column",
-            }}
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={signUpWithGoogle}
           >
-            <View>
-              <Text style={{ fontSize: 16, color: "gray" }}>Enter Email *</Text>
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                style={{
-                  padding: 10,
-                  borderColor: "#d0d0d0",
-                  borderWidth: 1,
-                  marginTop: 10,
-                  borderRadius: 10,
-                }}
-              />
-            </View>
+            <Image
+              source={require("../assets/google.png")}
+              style={styles.googleIcon}
+            />
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
+          </TouchableOpacity>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.divider} />
           </View>
-          <View
-            style={{
-              backgroundColor: "white",
-              marginHorizontal: 10,
-              marginTop: 25,
-              gap: 20,
-              flexDirection: "column",
-            }}
-          >
-            <View>
-              <Text style={{ fontSize: 16, color: "gray" }}>First Name *</Text>
-              <TextInput
-                value={firstName}
-                onChangeText={setFname}
-                style={{
-                  padding: 10,
-                  borderColor: "#d0d0d0",
-                  borderWidth: 1,
-                  marginTop: 10,
-                  borderRadius: 10,
-                }}
-              />
+
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Email Address *</Text>
+              <View style={styles.standardInputContainer}>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  style={styles.input}
+                  placeholder="Enter your email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
             </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: "white",
-              marginHorizontal: 10,
-              marginTop: 25,
-              gap: 20,
-              flexDirection: "column",
-            }}
-          >
-            <View>
-              <Text style={{ fontSize: 16, color: "gray" }}>Last Name</Text>
-              <TextInput
-                value={lastName}
-                onChangeText={setLname}
-                style={{
-                  padding: 10,
-                  borderColor: "#d0d0d0",
-                  borderWidth: 1,
-                  marginTop: 10,
-                  borderRadius: 10,
-                }}
-              />
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>First Name *</Text>
+              <View style={styles.standardInputContainer}>
+                <TextInput
+                  value={firstName}
+                  onChangeText={setFname}
+                  style={styles.input}
+                  placeholder="Enter your first name"
+                />
+              </View>
             </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: "white",
-              marginHorizontal: 10,
-              marginTop: 25,
-              gap: 20,
-              flexDirection: "column",
-            }}
-          >
-            <View>
-              <Text style={{ fontSize: 16, color: "gray" }}>Password *</Text>
-              <View
-                style={{
-                  padding: 10,
-                  borderColor: "#d0d0d0",
-                  borderWidth: 1,
-                  marginTop: 10,
-                  borderRadius: 10,
-                  flexDirection: "row",
-                }}
-              >
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Last Name</Text>
+              <View style={styles.standardInputContainer}>
+                <TextInput
+                  value={lastName}
+                  onChangeText={setLname}
+                  style={styles.input}
+                  placeholder="Enter your last name"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Password *</Text>
+              <View style={styles.standardInputContainer}>
                 <TextInput
                   secureTextEntry={!isPasswordVisible}
                   value={password}
                   onChangeText={setPassword}
-                  style={{ flex: 1 }}
+                  style={styles.input}
+                  placeholder="Enter your password"
                 />
                 <TouchableOpacity
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  style={{ paddingRight: 10 }}
+                  style={styles.eyeIconContainer}
                 >
                   <Ionicons
                     name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                    size={26}
-                    color="#bebebe"
+                    size={24}
+                    color="#013220"
                   />
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: "white",
-              marginHorizontal: 10,
-              marginTop: 25,
-              gap: 20,
-              flexDirection: "column",
-            }}
-          >
-            <View>
-              <Text style={{ fontSize: 16, color: "gray" }}>
-                Repeat Password *
-              </Text>
-              <View
-                style={{
-                  borderColor: "#d0d0d0",
-                  borderWidth: 1,
-                  padding: 10,
-                  marginTop: 10,
-                  borderRadius: 10,
-                  flexDirection: "row",
-                }}
-              >
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Confirm Password *</Text>
+              <View style={styles.standardInputContainer}>
                 <TextInput
                   secureTextEntry={!isRepeatPasswordVisible}
                   value={repeatPassword}
                   onChangeText={setRepeatPassword}
-                  style={{ flex: 1 }}
+                  style={styles.input}
+                  placeholder="Confirm your password"
                 />
                 <TouchableOpacity
                   onPress={() =>
                     setIsRepeatPasswordVisible(!isRepeatPasswordVisible)
                   }
-                  style={{ paddingRight: 10 }}
+                  style={styles.eyeIconContainer}
                 >
                   <Ionicons
                     name={
@@ -222,45 +230,156 @@ const NameScreen = () => {
                         ? "eye-outline"
                         : "eye-off-outline"
                     }
-                    size={26}
-                    color="#bebebe"
+                    size={24}
+                    color="#013220"
                   />
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </ScrollView>
-      </SafeAreaView>
-      <View style={{ backgroundColor: "white" }}>
-        <Pressable
-          onPress={next}
-          style={{
-            color: "white",
-            padding: 15,
-            backgroundColor: firstName?.length > 0 ? "#a71ec9" : "#e0e0e0",
-            marginTop: "auto",
-            marginBottom: 30,
-            padding: 12,
-            marginHorizontal: 10,
-            borderRadius: 6,
-          }}
-        >
-          <Text
-            style={{
-              textAlign: "center",
-              color: firstName?.length > 0 ? "white" : "gray",
-              fontSize: 15,
-              fontWeight: "500",
-            }}
+
+        <View style={styles.bottomContainer}>
+          <TouchableOpacity
+            onPress={next}
+            style={[
+              styles.nextButton,
+              {
+                backgroundColor:
+                  firstName?.length > 0 &&
+                  email.length > 0 &&
+                  password === repeatPassword &&
+                  password?.length > 0
+                    ? "#013220"
+                    : "#e0e0e0",
+              },
+            ]}
           >
-            Next
-          </Text>
-        </Pressable>
-      </View>
+            <Text
+              style={[
+                styles.nextButtonText,
+                {
+                  color:
+                    firstName?.length > 0 &&
+                    email.length > 0 &&
+                    password === repeatPassword &&
+                    password?.length > 0
+                      ? "white"
+                      : "gray",
+                },
+              ]}
+            >
+              Continue
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </>
   );
 };
 
 export default NameScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    marginTop: 10,
+  },
+  headerContainer: {
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#013220",
+  },
+  subHeaderText: {
+    fontSize: 16,
+    color: "gray",
+    marginTop: 5,
+  },
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginBottom: 20,
+  },
+  googleIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ddd",
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    color: "gray",
+  },
+  inputContainer: {
+    gap: 15,
+  },
+  inputWrapper: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    color: "#013220",
+    fontWeight: "500",
+  },
+  standardInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    height: 50,
+    paddingHorizontal: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    height: "100%",
+    padding: 0,
+  },
+  eyeIconContainer: {
+    padding: 5,
+  },
+  bottomContainer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+  },
+  nextButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  nextButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});

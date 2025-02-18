@@ -15,11 +15,6 @@ import Icon from "react-native-vector-icons/Entypo";
 const ProfileScreen = () => {
   const { userName, userEmail, userImage, setToken } = useContext(AuthContext);
 
-  const handleLogout = () => {
-    setToken("");
-    alert("Logged out successfully!");
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       {/* User Info */}
@@ -69,9 +64,6 @@ const ProfileScreen = () => {
             secureTextEntry
           />
         </View>
-        <Pressable style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Log Out</Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

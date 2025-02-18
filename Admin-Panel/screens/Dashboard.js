@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
-  SafeAreaView,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -11,10 +10,10 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { AuthContext } from "../auth/AuthContext";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
-import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from "../styles/theme";
 import ScreenHeader from "../components/ScreenHeader";
 import Card from "../components/Card";
 
@@ -109,7 +108,7 @@ const Dashboard = () => {
           </View>
         </View>
 
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -118,7 +117,10 @@ const Dashboard = () => {
         >
           <View style={styles.analyticsGrid}>
             {analyticsCards.map((card, index) => (
-              <Card key={index} style={[styles.analyticsCard, { backgroundColor: card.color }]}>
+              <Card
+                key={index}
+                style={[styles.analyticsCard, { backgroundColor: card.color }]}
+              >
                 <Ionicons name={card.icon} size={24} color={COLORS.white} />
                 <Text style={styles.cardTitle}>{card.title}</Text>
                 <Text style={styles.cardValue}>{card.value}</Text>
@@ -162,13 +164,13 @@ const styles = StyleSheet.create({
     paddingTop: SIZES.padding / 2,
   },
   analyticsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
   analyticsCard: {
-    width: '47%',
-    alignItems: 'center',
+    width: "47%",
+    alignItems: "center",
     marginBottom: SIZES.padding,
     backgroundColor: COLORS.white,
     ...SHADOWS.medium,
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.small,
     color: COLORS.white,
     marginTop: SIZES.base,
-    textAlign: 'center',
+    textAlign: "center",
   },
   cardValue: {
     ...FONTS.bold,

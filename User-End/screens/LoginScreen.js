@@ -50,7 +50,11 @@ const LoginScreen = () => {
         { text: "OK", onPress: () => console.log("OK") },
       ]);
     } catch (error) {
-      alert("Failed" + error.message);
+      Alert.alert(
+        "Login Failed",
+        "There was a problem logging in. Please check your email and password and try again.",
+        [{ text: "OK", onPress: () => console.log("OK") }]
+      );
     } finally {
     }
   };

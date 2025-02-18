@@ -1,8 +1,6 @@
 import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import AntDesign from "react-native-vector-icons/AntDesign";
 import { useRoute } from "@react-navigation/native";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
@@ -38,6 +36,22 @@ const HistoryScreen = () => {
       console.error(error);
     }
   };
+  const deleteHistory = async (id) => {
+    try {
+      const response = await axios.delete(
+        `http://${IpAddress}:8000/${userID}/detections/delete/${id}`
+      );
+
+      if (response.status == 200) {
+        console.log("History deleted successfully");
+        alert("History deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Error deleting history:", error);
+      alert("An error occurred while deleting history.");
+    }
+  };
+
   console.log(detections);
   return (
     <SafeAreaView>
@@ -69,7 +83,7 @@ const HistoryScreen = () => {
                 fontWeight: "500",
               }}
             >
-              Detections ({detections.length})
+              Detections ({detections.length ? detections.length : 0})
             </Text>
           </Pressable>
         </View>
@@ -104,77 +118,81 @@ const HistoryScreen = () => {
         <View>
           {option == "detections" && (
             <View>
-              {detections?.map((item, index) => (
-                <Pressable
-                  key={index}
-                  style={{
-                    padding: 10,
-                    backgroundColor: "white",
-                    marginVertical: 10,
-                    flexDirection: "row",
-                    borderRadius: 6,
-                  }}
-                >
-                  <View
+              {detections.length > 0 &&
+                detections?.map((item, index) => (
+                  <Pressable
+                    key={index}
                     style={{
-                      borderWidth: 2,
-                      borderColor: "#c518f0",
+                      padding: 10,
+                      backgroundColor: "white",
+                      marginVertical: 10,
+                      flexDirection: "row",
                       borderRadius: 6,
-                      padding: 2,
-                      marginRight: 15,
                     }}
                   >
-                    <Image
-                      style={{ width: 70, height: 70, borderRadius: 25 }}
-                      source={{ uri: "" }}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
                     <View
                       style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 13,
+                        padding: 2,
+                        marginRight: 15,
                       }}
                     >
-                      <View style={{ flex: 1 }}>
-                        <Text>Condition: {item?.predictionClass}</Text>
-                        <Text>Confidence: {item?.confidence}</Text>
-                      </View>
-                    </View>
-                    <View
-                      style={{
-                        height: 1,
-                        borderColor: "#e0e0e0",
-                        borderWidth: 1,
-                        marginVertical: 10,
-                      }}
-                    />
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        gap: 12,
-                      }}
-                    >
-                      <Pressable
-                        onPress={() => accept(item?.userID)}
+                      <Image
                         style={{
-                          padding: 10,
-                          borderRadius: 6,
-                          backgroundColor: "#c518f0",
-                          width: 100,
+                          width: 70,
+                          height: 70,
+                          borderWidth: 2,
+                          borderColor: "#c518f0",
+                          borderRadius: 5,
+                        }}
+                        source={{ uri: item.image }}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 13,
                         }}
                       >
-                        <Text style={{ textAlign: "center", color: "white" }}>
-                          Delete
-                        </Text>
-                      </Pressable>
+                        <View style={{ flex: 1 }}>
+                          <Text>Condition: {item?.predictionClass}</Text>
+                          <Text>Confidence: {item?.confidence}</Text>
+                        </View>
+                      </View>
+                      <View
+                        style={{
+                          height: 1,
+                          borderColor: "#e0e0e0",
+                          borderWidth: 1,
+                          marginVertical: 10,
+                        }}
+                      />
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          gap: 12,
+                        }}
+                      >
+                        <Pressable
+                          onPress={() => deleteHistory(item?._id)}
+                          style={{
+                            padding: 10,
+                            borderRadius: 6,
+                            backgroundColor: "#c518f0",
+                            width: 100,
+                          }}
+                        >
+                          <Text style={{ textAlign: "center", color: "white" }}>
+                            Delete
+                          </Text>
+                        </Pressable>
+                      </View>
                     </View>
-                  </View>
-                </Pressable>
-              ))}
+                  </Pressable>
+                ))}
             </View>
           )}
         </View>

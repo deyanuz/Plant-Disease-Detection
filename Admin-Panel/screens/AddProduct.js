@@ -86,9 +86,9 @@ const AddProduct = () => {
         stock: stockNum,
       };
 
-      console.log('Sending product data:', productData);
+      console.log("Sending product data:", productData);
       const response = await axios.post(`${BASE_URL}/products`, productData);
-      console.log('Server response:', response.data);
+      console.log("Server response:", response.data);
 
       Alert.alert("Success", "Product added successfully!");
       // Clear form
@@ -103,11 +103,12 @@ const AddProduct = () => {
       console.error("Error details:", {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
       Alert.alert(
         "Error",
-        error.response?.data?.error || "Failed to add product. Please try again."
+        error.response?.data?.error ||
+          "Failed to add product. Please try again."
       );
     }
   };
@@ -155,22 +156,18 @@ const AddProduct = () => {
     <TouchableOpacity
       style={styles.productCard}
       onPress={() =>
-        Alert.alert(
-          "Product Options",
-          `Choose an action for ${item.name}`,
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Delete",
-              onPress: () => handleDeleteProduct(item._id),
-              style: "destructive",
-            },
-            {
-              text: "Update",
-              onPress: () => handleUpdateProduct(item),
-            },
-          ]
-        )
+        Alert.alert("Product Options", `Choose an action for ${item.name}`, [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            onPress: () => handleDeleteProduct(item._id),
+            style: "destructive",
+          },
+          {
+            text: "Update",
+            onPress: () => handleUpdateProduct(item),
+          },
+        ])
       }
     >
       <Text style={styles.productName}>{item.name}</Text>
@@ -284,14 +281,14 @@ const AddProduct = () => {
               onChangeText={setUpdatedStock}
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.saveButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
                 onPress={saveUpdatedProduct}
               >
                 <Text style={styles.modalButtonText}>Save</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.modalButtonText}>Cancel</Text>

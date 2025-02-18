@@ -1,4 +1,4 @@
-// Import the functions you need from the SDKs you need
+// Change from ES module imports to CommonJS requires
 const { initializeApp } = require("firebase/app");
 const { getAuth } = require("firebase/auth");
 
@@ -14,10 +14,12 @@ const firebaseConfig = {
   storageBucket: "plant-disease-detection-22117.firebasestorage.app",
   messagingSenderId: "284341709761",
   appId: "1:284341709761:web:fe6085083f535237e0dd40",
-  measurementId: "G-PZSGLGMDKH"
+  measurementId: "G-PZSGLGMDKH",
 };
 
 // Initialize Firebase
 const FIREBASE = initializeApp(firebaseConfig);
 const FIREBASE_AUTH = getAuth(FIREBASE);
+
+// Change to CommonJS exports
 module.exports = { FIREBASE_AUTH };
