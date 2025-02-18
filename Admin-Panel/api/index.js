@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const Product = require("./models/product");
 const Admin = require("./models/admins");
+const Order = require("./models/order");
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -40,27 +41,60 @@ const authenticateToken = (req, res, next) => {
 // Create a Product
 app.post("/products", async (req, res) => {
   try {
-    const { name, description, price, image, category, stock } = req.body;
+    const { name, description, price, category, stock } = req.body;
 
-    // Ensure required fields are provided
-    if (!name || !price || !category) {
-      return res.status(400).json({ error: "Missing required fields" });
+    // Enhanced validation
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ error: "Valid product name is required" });
     }
 
+    if (!price || isNaN(price) || price < 0) {
+      return res.status(400).json({ error: "Valid price is required" });
+    }
+
+    if (!category || typeof category !== 'string' || category.trim().length === 0) {
+      return res.status(400).json({ error: "Valid category is required" });
+    }
+
+    // Validate against allowed categories
+    const allowedCategories = ["Jute", "Tomato", "Strawberry", "Potato", "Other"];
+    if (!allowedCategories.includes(category)) {
+      return res.status(400).json({ 
+        error: "Invalid category. Allowed categories: " + allowedCategories.join(", ")
+      });
+    }
+
+    // Create new product with sanitized data
     const newProduct = new Product({
-      name,
-      description,
-      price,
-      image,
-      category,
-      stock,
+      name: name.trim(),
+      description: description ? description.trim() : "",
+      price: parseFloat(price),
+      category: category.trim(),
+      stock: parseInt(stock) || 0,
+      image: req.body.image || "https://via.placeholder.com/150" // Default image
     });
 
+    console.log('Attempting to save product:', newProduct);
     const savedProduct = await newProduct.save();
+    console.log('Product saved successfully:', savedProduct);
+    
     res.status(201).json(savedProduct);
   } catch (error) {
-    console.error("Error creating product:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Server error creating product:", error);
+    
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: "Validation error", 
+        details: Object.values(error.errors).map(err => err.message)
+      });
+    }
+
+    // Handle other errors
+    res.status(500).json({ 
+      error: "Failed to create product",
+      details: error.message
+    });
   }
 });
 
@@ -211,6 +245,89 @@ app.post("/admin/login", async (req, res) => {
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Get all orders
+app.get("/orders", async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+// Update order status
+app.put("/orders/:id/status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!ORDER_STATUSES.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ error: "Failed to update order status" });
+  }
+});
+
+// Get order by ID
+app.get("/orders/:id", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    res.json(order);
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    res.status(500).json({ error: "Failed to fetch order" });
+  }
+});
+
+// Add this new endpoint
+app.get("/dashboard/stats", async (req, res) => {
+  try {
+    const [
+      totalAdmins,
+      totalProducts,
+      totalOrders,
+      pendingOrders,
+      notifications
+    ] = await Promise.all([
+      Admin.countDocuments(),
+      Product.countDocuments(),
+      Order.countDocuments(),
+      Order.countDocuments({ status: 'Pending' }),
+      // Add your notifications count logic here
+    ]);
+
+    res.json({
+      totalAdmins,
+      totalProducts,
+      totalOrders,
+      totalUsers: 0, // Add your user count logic
+      pendingOrders,
+      notifications: 0, // Add your notifications count logic
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    res.status(500).json({ error: "Failed to fetch dashboard stats" });
   }
 });
 

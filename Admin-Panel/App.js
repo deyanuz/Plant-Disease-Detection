@@ -5,6 +5,7 @@ import LoginScreen from "./screens/LoginScreen";
 import Dashboard from "./screens/Dashboard";
 import { AuthProvider } from "./auth/AuthContext";
 import StackNavigator from "./navigation/StackNavigator";
+import 'react-native-gesture-handler';
 
 const Stack = createStackNavigator();
 
