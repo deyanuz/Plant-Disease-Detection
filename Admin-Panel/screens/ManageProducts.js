@@ -34,7 +34,7 @@ const ManageProducts = () => {
     setLoading(true);
     setError(false);
     try {
-      const response = await axios.get("http://192.168.0.101:9000/products"); // Replace with your server URL
+      const response = await axios.get(`http://${IpAddress}:9000/products`); // Replace with your server URL
       setProducts(response.data);
     } catch (err) {
       console.error(err);
@@ -48,7 +48,7 @@ const ManageProducts = () => {
   // Handle Delete Product
   const handleDeleteProduct = async (id) => {
     try {
-      await axios.delete(`http://192.168.0.101:9000/products/${id}`); // Replace with your server URL
+      await axios.delete(`http://${IpAddress}:9000/products/${id}`); // Replace with your server URL
       Alert.alert("Success", "Product deleted successfully!");
       fetchProducts(); // Refresh products
     } catch (err) {
@@ -70,7 +70,7 @@ const ManageProducts = () => {
   const saveUpdatedProduct = async () => {
     try {
       const response = await axios.put(
-        `http://192.168.0.101:9000/products/${selectedProduct._id}`, // Replace with your server URL
+        `http://${IpAddress}:9000/products/${selectedProduct._id}`, // Replace with your server URL
         {
           name: updatedName,
           price: parseFloat(updatedPrice),

@@ -12,8 +12,9 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import axios from "axios";
+import IpAddress from "../DeviceConfig";
 
-const BASE_URL = "http://192.168.0.101:9000"; // Replace with your server URL
+const BASE_URL = `http://${IpAddress}:9000`;
 
 const AddAdmin = () => {
   const [admins, setAdmins] = useState([]);
