@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   SafeAreaView,
   Text,
@@ -6,110 +6,125 @@ import {
   StyleSheet,
   ScrollView,
   View,
-  Alert,
+  RefreshControl,
 } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // For managing stored session tokens
-import { AuthContext } from "../auth/AuthContext"; // Assuming you use an AuthContext
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { AuthContext } from "../auth/AuthContext";
+import { useNavigation } from '@react-navigation/native';
+import axios from "axios";
+import IpAddress from "../DeviceConfig";
+import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
+import ScreenHeader from "../components/ScreenHeader";
+import Card from "../components/Card";
 
-const Dashboard = ({ navigation }) => {
-  const { setToken } = useContext(AuthContext); // Access the AuthContext
+const BASE_URL = `http://${IpAddress}:9000`;
 
-  const handleLogout = async () => {
+const Dashboard = () => {
+  const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
+  const { setToken } = useContext(AuthContext);
+  const [stats, setStats] = useState({
+    totalAdmins: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    pendingOrders: 0,
+    notifications: 0,
+  });
+
+  const fetchDashboardStats = async () => {
     try {
-      // Clear the stored token
-      await AsyncStorage.removeItem("adminToken");
-      setToken(null); // Update the token in AuthContext
-      navigation.replace("Login"); // Navigate to the login screen
+      const response = await axios.get(`${BASE_URL}/dashboard/stats`);
+      setStats(response.data);
     } catch (error) {
-      console.error("Error logging out:", error);
-      Alert.alert("Error", "Failed to log out. Please try again.");
+      console.error("Error fetching dashboard stats:", error);
     }
   };
 
-  const features = [
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchDashboardStats();
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
+
+  const analyticsCards = [
     {
-      id: 1,
-      title: "Add Admin",
-      icon: "person-add-outline",
-      onPress: () => navigation.navigate("AddAdmin"), // Navigate to Add Admin screen
-      color: "#FF6F61",
+      title: "Total Admins",
+      value: stats.totalAdmins,
+      icon: "people-outline",
+      color: COLORS.accent,
     },
     {
-      id: 2,
-      title: "Manage Products",
+      title: "Total Products",
+      value: stats.totalProducts,
+      icon: "cube-outline",
+      color: COLORS.primary,
+    },
+    {
+      title: "Total Orders",
+      value: stats.totalOrders,
       icon: "cart-outline",
-      onPress: () => navigation.navigate("ManageProducts"), // Navigate to Manage Products screen
-      color: "#FFD966",
+      color: COLORS.secondary,
     },
     {
-      id: 3,
-      title: "User History",
+      title: "Total Users",
+      value: stats.totalUsers,
+      icon: "person-outline",
+      color: COLORS.info,
+    },
+    {
+      title: "Pending Orders",
+      value: stats.pendingOrders,
       icon: "time-outline",
-      onPress: () => navigation.navigate("UserHistory"), // Navigate to User History screen
-      color: "#6EB5FF",
+      color: COLORS.warning,
     },
     {
-      id: 4,
-      title: "Manage Orders",
-      icon: "clipboard-outline",
-      onPress: () => navigation.navigate("ManageOrders"), // Navigate to Manage Orders screen
-      color: "#71C567",
+      title: "Notifications",
+      value: stats.notifications,
+      icon: "notifications-outline",
+      color: COLORS.error,
     },
   ];
 
   return (
     <LinearGradient
-      colors={["#5A9", "#013220"]}
-      style={styles.gradientBackground}
+      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+      style={styles.gradient}
     >
       <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
+        <View style={styles.headerSection}>
+          <ScreenHeader
+            title="Dashboard"
+            leftIcon="menu-outline"
+            onLeftPress={() => navigation.openDrawer()}
+          />
+          <View style={styles.welcomeSection}>
             <Text style={styles.welcomeText}>Welcome Back,</Text>
             <Text style={styles.adminName}>Admin</Text>
           </View>
-          <View style={styles.headerIcons}>
-            <Ionicons name="person-circle-outline" size={50} color="#fff" />
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-              <Ionicons name="log-out-outline" size={30} color="#fff" />
-            </TouchableOpacity>
-          </View>
         </View>
 
-        {/* Analytics Section */}
-        <View style={styles.analyticsSection}>
-          <View
-            style={[styles.analyticsCard, { backgroundColor: "#FF6F61" }]}
-          >
-            <Text style={styles.analyticsTitle}>Active Admins</Text>
-            <Text style={styles.analyticsValue}>5</Text>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <View style={styles.analyticsGrid}>
+            {analyticsCards.map((card, index) => (
+              <Card key={index} style={[styles.analyticsCard, { backgroundColor: card.color }]}>
+                <Ionicons name={card.icon} size={24} color={COLORS.white} />
+                <Text style={styles.cardTitle}>{card.title}</Text>
+                <Text style={styles.cardValue}>{card.value}</Text>
+              </Card>
+            ))}
           </View>
-          <View
-            style={[styles.analyticsCard, { backgroundColor: "#6EB5FF" }]}
-          >
-            <Text style={styles.analyticsTitle}>Orders</Text>
-            <Text style={styles.analyticsValue}>120</Text>
-          </View>
-        </View>
-
-        {/* Features Section */}
-        <ScrollView contentContainerStyle={styles.featuresContainer}>
-          {features.map((feature) => (
-            <TouchableOpacity
-              key={feature.id}
-              style={[
-                styles.featureCard,
-                { backgroundColor: feature.color },
-              ]}
-              onPress={feature.onPress}
-            >
-              <Ionicons name={feature.icon} size={30} color="#fff" />
-              <Text style={styles.featureText}>{feature.title}</Text>
-            </TouchableOpacity>
-          ))}
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>
@@ -117,91 +132,59 @@ const Dashboard = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  gradientBackground: {
+  gradient: {
     flex: 1,
   },
   container: {
     flex: 1,
-    padding: 20,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
+  headerSection: {
+    paddingTop: SIZES.padding,
   },
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
+  welcomeSection: {
+    paddingHorizontal: SIZES.padding,
+    marginTop: SIZES.base,
   },
   welcomeText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+    ...FONTS.regular,
+    fontSize: SIZES.medium,
+    color: COLORS.white,
+    opacity: 0.9,
   },
   adminName: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "bold",
+    ...FONTS.bold,
+    fontSize: SIZES.extraLarge,
+    color: COLORS.white,
   },
-  logoutButton: {
-    marginLeft: 10,
-    backgroundColor: "#FF6F61",
-    padding: 8,
-    borderRadius: 10,
+  scrollContent: {
+    flexGrow: 1,
+    padding: SIZES.padding,
+    paddingTop: SIZES.padding / 2,
   },
-  analyticsSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 20,
+  analyticsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   analyticsCard: {
-    flex: 1,
-    marginHorizontal: 5,
-    padding: 20,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+    width: '47%',
+    alignItems: 'center',
+    marginBottom: SIZES.padding,
+    backgroundColor: COLORS.white,
+    ...SHADOWS.medium,
   },
-  analyticsTitle: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
+  cardTitle: {
+    ...FONTS.medium,
+    fontSize: SIZES.small,
+    color: COLORS.white,
+    marginTop: SIZES.base,
+    textAlign: 'center',
   },
-  analyticsValue: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-  featuresContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  featureCard: {
-    width: "47%",
-    marginVertical: 10,
-    padding: 20,
-    borderRadius: 20,
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  featureText: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 10,
-    textAlign: "center",
-    fontWeight: "bold",
+  cardValue: {
+    ...FONTS.bold,
+    fontSize: SIZES.large,
+    color: COLORS.white,
+    marginTop: SIZES.base / 2,
   },
 });
 
