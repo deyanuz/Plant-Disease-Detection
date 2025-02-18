@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  SafeAreaView,
   Text,
   FlatList,
   TextInput,
@@ -87,9 +87,7 @@ const AddAdmin = () => {
   const renderAdminItem = ({ item }) => (
     <View style={styles.adminItem}>
       <Text style={styles.adminEmail}>{item.email}</Text>
-      {item.isPrimary && (
-        <Text style={styles.primaryLabel}>Primary Admin</Text>
-      )}
+      {item.isPrimary && <Text style={styles.primaryLabel}>Primary Admin</Text>}
     </View>
   );
 
@@ -195,7 +193,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 10,
-    padding: 12,
+    padding: 6,
     marginBottom: 15,
   },
   inputPassword: {

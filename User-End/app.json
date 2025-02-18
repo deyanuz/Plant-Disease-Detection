@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "newArchEnabled":true,
     "userInterfaceStyle": "light",
+    "plugins": ["@react-native-google-signin/google-signin"],
   
     "ios": {
       "supportsTablet": true

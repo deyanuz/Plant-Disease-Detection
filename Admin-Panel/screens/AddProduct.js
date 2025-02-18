@@ -1,12 +1,6 @@
 import React, { useState } from "react";
-import {
-  SafeAreaView,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import axios from "axios";
 
 const BASE_URL = "http://192.168.0.101:9000"; // Replace with your backend server address

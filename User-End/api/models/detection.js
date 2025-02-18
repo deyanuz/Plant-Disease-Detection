@@ -7,9 +7,9 @@ const detectionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    imagePath: {
-      type: String,
-      required: true,
+    image: {
+      type: Buffer, // Use Buffer for binary image data
+      required: false, // Set to false if it's optional
     },
     predictionClass: {
       type: String,

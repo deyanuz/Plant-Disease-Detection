@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  SafeAreaView,
   Text,
   FlatList,
   TouchableOpacity,
@@ -98,22 +98,18 @@ const ManageProducts = () => {
     <TouchableOpacity
       style={styles.productCard}
       onPress={() =>
-        Alert.alert(
-          "Product Options",
-          `Choose an action for ${item.name}`,
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Delete",
-              onPress: () => handleDeleteProduct(item._id),
-              style: "destructive",
-            },
-            {
-              text: "Update",
-              onPress: () => handleUpdateProduct(item),
-            },
-          ]
-        )
+        Alert.alert("Product Options", `Choose an action for ${item.name}`, [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            onPress: () => handleDeleteProduct(item._id),
+            style: "destructive",
+          },
+          {
+            text: "Update",
+            onPress: () => handleUpdateProduct(item),
+          },
+        ])
       }
     >
       <Text style={styles.productName}>{item.name}</Text>
@@ -175,7 +171,11 @@ const ManageProducts = () => {
               onChangeText={setUpdatedStock}
             />
             <Button title="Save" onPress={saveUpdatedProduct} />
-            <Button title="Cancel" color="red" onPress={() => setModalVisible(false)} />
+            <Button
+              title="Cancel"
+              color="red"
+              onPress={() => setModalVisible(false)}
+            />
           </View>
         </Modal>
       )}

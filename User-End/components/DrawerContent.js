@@ -7,6 +7,7 @@ import { Avatar, Title, Caption } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../auth/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const DrawerContent = (props) => {
   const navigation = useNavigation();
@@ -35,16 +36,21 @@ const DrawerContent = (props) => {
     <View style={styles.container}>
       <View style={styles.userInfoSection}>
         <TouchableOpacity activeOpacity={0.8}>
-          <View style={{ flexDirection: "row", marginTop: 15 }}>
+          <View style={styles.userInfoContent}>
             <Avatar.Image
               source={{
                 uri: userImage,
               }}
-              size={50}
+              size={60}
+              style={styles.avatar}
             />
-            <View style={{ marginLeft: 10 }}>
-              <Title style={styles.title}>{userName}</Title>
-              <Caption style={styles.caption}>{userEmail}</Caption>
+            <View style={styles.userTextContainer}>
+              <Title style={styles.title} numberOfLines={1}>
+                {userName}
+              </Title>
+              <Caption style={styles.caption} numberOfLines={1}>
+                {userEmail}
+              </Caption>
             </View>
           </View>
         </TouchableOpacity>
@@ -55,27 +61,39 @@ const DrawerContent = (props) => {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         <View style={styles.drawerItems}>
-          <View>
+          <View style={styles.menuContainer}>
             <TouchableOpacity
+              style={styles.menuItem}
               onPress={() => {
                 props.navigation.navigate("User");
               }}
             >
-              <Text style={styles.drawerItem}>User</Text>
+              <View style={styles.menuItemContent}>
+                <Ionicons name="person-outline" size={24} color="#013220" />
+                <Text style={styles.menuItemText}>User</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
+              style={styles.menuItem}
               onPress={() => {
                 props.navigation.navigate("Profile");
               }}
             >
-              <Text style={styles.drawerItem}>Profile</Text>
+              <View style={styles.menuItemContent}>
+                <Ionicons name="settings-outline" size={24} color="#013220" />
+                <Text style={styles.menuItemText}>Profile</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
+              style={styles.menuItem}
               onPress={() => {
                 props.navigation.navigate("History");
               }}
             >
-              <Text style={styles.drawerItem}>History</Text>
+              <View style={styles.menuItemContent}>
+                <Ionicons name="time-outline" size={24} color="#013220" />
+                <Text style={styles.menuItemText}>History</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -98,16 +116,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-outer",
   },
   userInfoSection: {
-    paddingLeft: 20,
-    paddingTop: 20,
+    padding: 20,
+    paddingTop: 40,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    backgroundColor: "#f8f8f8",
+  },
+  userInfoContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    backgroundColor: "#0132",
+  },
+  userTextContainer: {
+    marginLeft: 15,
+    flex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#013220",
   },
   caption: {
     fontSize: 14,
-    color: "gray",
+    color: "#666",
+    marginTop: 2,
   },
   drawerItems: {
     paddingTop: 20,
@@ -130,6 +164,21 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  menuContainer: {
+    paddingHorizontal: 15,
+  },
+  menuItem: {
+    paddingVertical: 10,
+  },
+  menuItemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: "#013220",
   },
 });
 

@@ -35,14 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
@@ -151,23 +144,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     }
     const userID = req.body.userID;
 
-    // Move the uploaded file to the corresponding userID folder
-    const tempFilePath = req.file.path;
-    const newFolder = `uploads/${userID}`;
-    const newFilePath = `${newFolder}/${req.file.filename}`;
-    if (!fs.existsSync(newFolder)) {
-      fs.mkdirSync(newFolder, { recursive: true });
-    }
-
-    console.log(tempFilePath);
-
-    await fs.promises.rename(tempFilePath, newFilePath),
-      (err) => {
-        if (err) {
-          console.error("Error moving file:", err);
-        }
-      };
-    const imageBuffer = fs.readFileSync(newFilePath);
+    const imageBuffer = req.file.buffer;
     const resizedBuffer = await sharp(imageBuffer).resize(224, 224).toBuffer();
 
     // Decode the resized image
@@ -196,7 +173,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     try {
       const detection = new Detection({
         userID: userID,
-        imagePath: newFilePath,
+        image: resizedBuffer,
         predictionClass: predictedClass,
         confidence: confidence,
       });
@@ -220,16 +197,52 @@ app.post("/detect", upload.single("image"), async (req, res) => {
 app.get("/:userID/detections", async (req, res) => {
   try {
     const { userID } = req.params;
-    const detections = await Detection.find({ userID }); // Filter by userID
-    console.log(`Detections for userID ${userID}:`, detections);
 
-    if (!detections) {
-      return res.status(400).json({ message: "No detections yet" });
+    // Fetch detections filtered by userID
+    const detections = await Detection.find({ userID });
+
+    if (!detections || detections.length === 0) {
+      return res.json({ message: "No detections yet" });
     }
-    return res.json(detections);
+
+    // Transform detections to include Base64-encoded images
+    const detectionsWithImages = detections.map((detection) => {
+      return {
+        _id: detection._id,
+        userID: detection.userID,
+        predictionClass: detection.predictionClass,
+        confidence: detection.confidence,
+        image: detection.image
+          ? `data:image/jpeg;base64,${detection.image.toString("base64")}` // Adjust MIME type if needed
+          : null,
+        createdAt: detection.createdAt,
+        updatedAt: detection.updatedAt,
+      };
+    });
+
+    return res.json(detectionsWithImages);
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: error.message });
+  }
+});
+
+//delete history
+app.delete("/:userID/detections/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Delete detections for the specified userID
+    const result = await Detection.deleteOne({ _id: id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "No detections found to delete" });
+    }
+
+    return res.status(200).json({ message: "Detection deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting history:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

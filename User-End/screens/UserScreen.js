@@ -10,8 +10,10 @@ import {
   TextInput,
   Pressable,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
-const UserScreen = ({ navigation }) => {
+const UserScreen = () => {
+  const navigation = useNavigation();
   const [products, setProducts] = useState([]);
 
   const categories = [
@@ -134,6 +136,19 @@ const UserScreen = ({ navigation }) => {
         )}
         keyExtractor={(item) => item.id.toString()}
       />
+
+      {/* Add the Camera Button */}
+      <Pressable
+        style={[styles.cameraButton, styles.shadow]}
+        onPress={() => navigation.navigate("Camera")}
+        android_ripple={{
+          color: "#fff",
+          borderless: true,
+          radius: 30,
+        }}
+      >
+        <Icon name="camera" size={24} color="#fff" />
+      </Pressable>
     </SafeAreaView>
   );
 };
@@ -154,7 +169,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "#013220",
   },
   searchInput: {
     flex: 1,
@@ -163,11 +178,13 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginRight: 5,
+    color: "#013220",
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginVertical: 10,
+    color: "#013220",
   },
   categoryContainer: {
     flexDirection: "row",
@@ -182,18 +199,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: "#013220",
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 2,
+    borderWidth: 1,
+    borderColor: "#013220",
   },
   categoryIcon: {
     fontSize: 30,
+    color: "#013220",
   },
   categoryText: {
     marginTop: 5,
     fontSize: 12,
     textAlign: "center",
+    color: "#013220",
   },
   productCard: {
     backgroundColor: "#FFF",
@@ -201,27 +222,30 @@ const styles = StyleSheet.create({
     margin: 5,
     padding: 10,
     borderRadius: 10,
-    alignItems: "flex-start", // Aligns items slightly to the left
+    alignItems: "flex-start",
     elevation: 3,
     position: "relative",
+    borderWidth: 1,
+    borderColor: "#013220",
   },
   productImage: {
     width: 100,
     height: 100,
     resizeMode: "contain",
-    alignSelf: "center", // Keeps the image centered horizontally
+    alignSelf: "center",
   },
   productInfo: {
-    alignItems: "flex-start", // Align name and price to the left
+    alignItems: "flex-start",
     marginVertical: 5,
   },
   productName: {
     fontSize: 13,
     fontWeight: "600",
+    color: "#013220",
   },
   productPrice: {
     fontSize: 12,
-    color: "green",
+    color: "#013220",
     fontWeight: "bold",
   },
   addButton: {
@@ -239,6 +263,38 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  cameraButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 20,
+    width: 60,
+    height: 60,
+    backgroundColor: "#013220",
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 999,
+    shadowColor: "#013220",
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: "#013220",
+  },
+  shadow: {
+    shadowColor: "#013220",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });
 

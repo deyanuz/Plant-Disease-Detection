@@ -5,12 +5,15 @@ import {
   TouchableOpacity,
   View,
   Image,
+  Animated,
 } from "react-native";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
 import { AuthContext } from "../auth/AuthContext";
+import Icon from "react-native-vector-icons/FontAwesome";
+import { useNavigation } from "@react-navigation/native";
 
 const DetectScreen = () => {
   const [image, setImage] = useState();
@@ -18,6 +21,9 @@ const DetectScreen = () => {
   const [predictedClass, setPredictedClass] = useState();
   const [confidence, setConfidence] = useState();
   const { userID } = useContext(AuthContext);
+  const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   const refreshDetection = () => {
     setIsDetected(false);
     setImage("");
@@ -114,45 +120,119 @@ const DetectScreen = () => {
     }
   };
 
+  const handleBackPress = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0.5,
+      duration: 50,
+      useNativeDriver: true,
+    }).start(() => {
+      navigation.goBack();
+    });
+  };
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleBackPress}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Icon
+            name="chevron-left"
+            size={20}
+            color="#013220"
+            style={{ opacity: 0.7 }}
+          />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.imageTextContainer}>
-        <Text style={styles.title}>Select an Image</Text>
+        <Text style={styles.title}>Disease Detection</Text>
         <View style={styles.imageContainer}>
           {image ? (
             <Image source={{ uri: image }} style={styles.image} />
           ) : (
-            <Text style={styles.placeholderText}>No image selected</Text>
+            <View style={styles.placeholderContainer}>
+              <Icon name="image" size={50} color="#888" />
+              <Text style={styles.placeholderText}>No image selected</Text>
+            </View>
           )}
         </View>
       </View>
+
       {isDetected ? (
         <View style={styles.detectedContainer}>
-          <Text style={styles.predictedClassText}>
-            Condition: {predictedClass}
-          </Text>
-          <Text style={styles.confidentText}>Confidence: {confidence}</Text>
-          <TouchableOpacity onPress={refreshDetection} style={styles.button}>
-            <Text style={styles.buttonText}>Refresh</Text>
+          <View style={styles.resultCard}>
+            <Text style={styles.predictedClassText}>Detected Condition:</Text>
+            <Text style={styles.conditionText}>{predictedClass}</Text>
+            <Text style={styles.confidentText}>Confidence: {confidence}%</Text>
+          </View>
+          <TouchableOpacity
+            onPress={refreshDetection}
+            style={styles.primaryButton}
+          >
+            <Icon
+              name="refresh"
+              size={20}
+              color="#FFF"
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.buttonText}>Try Another Image</Text>
           </TouchableOpacity>
         </View>
       ) : image ? (
         <View style={styles.detectButtonContainer}>
-          <TouchableOpacity onPress={sendImageToBackend} style={styles.button}>
+          <TouchableOpacity
+            onPress={sendImageToBackend}
+            style={styles.primaryButton}
+          >
+            <Icon
+              name="search"
+              size={20}
+              color="#FFF"
+              style={styles.buttonIcon}
+            />
             <Text style={styles.buttonText}>Detect Disease</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={pickFromGallery} style={styles.button}>
+          <TouchableOpacity
+            onPress={pickFromGallery}
+            style={styles.secondaryButton}
+          >
+            <Icon
+              name="image"
+              size={20}
+              color="#FFF"
+              style={styles.buttonIcon}
+            />
             <Text style={styles.buttonText}>Select from Gallery</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={pickFromCamera} style={styles.button}>
+          <TouchableOpacity
+            onPress={pickFromCamera}
+            style={styles.primaryButton}
+          >
+            <Icon
+              name="camera"
+              size={20}
+              color="#FFF"
+              style={styles.buttonIcon}
+            />
             <Text style={styles.buttonText}>Capture from Camera</Text>
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 };
 
@@ -161,65 +241,132 @@ export default DetectScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F8F8F8",
     paddingHorizontal: 20,
-    paddingTop: 40,
+  },
+  header: {
+    paddingTop: 50,
+    paddingBottom: 20,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backText: {
+    fontSize: 16,
+    color: "#013220",
+    marginLeft: 5,
   },
   imageTextContainer: {
     alignItems: "center",
-    marginVertical: 30,
+    marginVertical: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 15,
+    marginBottom: 20,
     color: "#013220",
   },
   imageContainer: {
-    width: 250,
-    height: 250,
+    width: 300,
+    height: 300,
     borderWidth: 2,
-    borderColor: "#9d23bc",
-    borderRadius: 10,
+    borderColor: "#013220",
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#e6e6e6",
-    marginVertical: 20,
+    backgroundColor: "#FFF",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  placeholderContainer: {
+    alignItems: "center",
   },
   placeholderText: {
     fontSize: 16,
     color: "#888",
-    textAlign: "center",
+    marginTop: 10,
   },
   image: {
     width: "100%",
     height: "100%",
-    borderRadius: 8,
+    borderRadius: 18,
   },
   buttonContainer: {
     width: "100%",
     alignItems: "center",
-    marginBottom: 60,
+    marginBottom: 40,
   },
   detectButtonContainer: {
     width: "100%",
     alignItems: "center",
-    marginBottom: 80,
+    marginBottom: 40,
   },
   detectedContainer: {
     width: "100%",
     alignItems: "center",
-    marginBottom: 80,
+    marginBottom: 40,
   },
-  button: {
-    width: "80%",
-    paddingVertical: 15,
-    backgroundColor: "#9d23bc",
-    borderRadius: 10,
+  resultCard: {
+    backgroundColor: "#FFF",
+    padding: 20,
+    borderRadius: 15,
+    width: "100%",
     alignItems: "center",
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  primaryButton: {
+    width: "100%",
+    flexDirection: "row",
+    paddingVertical: 15,
+    backgroundColor: "#013220",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  secondaryButton: {
+    width: "100%",
+    flexDirection: "row",
+    paddingVertical: 15,
+    backgroundColor: "#2E8B57",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonIcon: {
+    marginRight: 10,
   },
   buttonText: {
     fontSize: 16,
@@ -227,16 +374,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   predictedClassText: {
-    fontSize: 20,
+    fontSize: 18,
+    color: "#666",
+    marginBottom: 5,
+  },
+  conditionText: {
+    fontSize: 24,
     fontWeight: "bold",
     color: "#013220",
-    textAlign: "center",
-    marginVertical: 10,
+    marginBottom: 10,
   },
   confidentText: {
-    fontSize: 18,
-    color: "#555",
-    textAlign: "center",
-    marginVertical: 5,
+    fontSize: 16,
+    color: "#666",
   },
 });

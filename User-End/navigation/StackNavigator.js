@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, Text, View, Pressable, Animated } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
@@ -11,7 +11,7 @@ import SelectImageScreen from "../screens/SelectImageScreen";
 import PreFinalScreen from "../screens/PreFinalScreen";
 import { AuthContext } from "../auth/AuthContext";
 import SplashScreen from "../screens/SplashView";
-import ProductDetailsScreen from "../screens/ProductDetailsScreen"; 
+import ProductDetailsScreen from "../screens/ProductDetailsScreen";
 import UserScreen from "../screens/UserScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import HistoryScreen from "../screens/HistoryScreen";
@@ -42,6 +42,7 @@ const StackNavigator = () => {
 
   const Drawer = createDrawerNavigator();
   const Tab = createBottomTabNavigator();
+  const [showCamera, setShowCamera] = useState(false);
 
   // Drawer Navigator
   const DrawerNav = () => {
@@ -62,6 +63,13 @@ const StackNavigator = () => {
               />
             </Pressable>
           ),
+          drawerType: "slide",
+          overlayColor: "rgba(0,0,0,0.5)",
+          drawerStyle: {
+            width: "80%",
+          },
+          swipeEnabled: true,
+          gestureEnabled: true,
         })}
         drawerContent={(props) => <DrawerContent {...props} />}
       >
@@ -85,9 +93,12 @@ const StackNavigator = () => {
   };
 
   // Bottom Tab Navigator
-  const TabNav = () => {
+  const TabNav = ({ route }) => {
     return (
       <Tab.Navigator
+        animation="slide_from_right"
+        animationEnabled={true}
+        animationTypeForReplace="push"
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
             let iconName;
@@ -115,26 +126,28 @@ const StackNavigator = () => {
           headerShown: route.name !== "Home",
           tabBarStyle: {
             height: 60,
+            animation: "timing",
+            config: {
+              duration: 200,
+            },
+          },
+          tabBarHideOnKeyboard: true,
+          tabBarVisibilityAnimationConfig: {
+            duration: 200,
           },
         })}
       >
-        <Tab.Screen name="Home" component={DrawerNav} options={{ headerShown: false }} />
-        <Tab.Screen name="Chatbot" component={Chatbot} options={{ headerShown: false }} />
         <Tab.Screen
-          name="Camera"
-          component={DetectScreen}
-          options={{
-            headerShown: false,
-            tabBarButton: (props) => (
-              <Pressable
-                style={[styles.cameraButton, styles.shadow]}
-                onPress={props.onPress}
-              >
-                <Entypo name="camera" size={30} color="#fff" />
-              </Pressable>
-            ),
-          }}
+          name="Home"
+          component={DrawerNav}
+          options={{ headerShown: false }}
         />
+        <Tab.Screen
+          name="Chatbot"
+          component={Chatbot}
+          options={{ headerShown: false }}
+        />
+        {/* Camera screen moved to MainStack */}
         <Tab.Screen
           name="Order"
           component={OrderScreen}
@@ -151,33 +164,66 @@ const StackNavigator = () => {
 
   const MainStack = () => {
     return (
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          animation: "slide_from_right",
+          gestureEnabled: true,
+          gestureDirection: "horizontal",
+          animationEnabled: true,
+          animationTypeForReplace: "push",
+          headerMode: "screen",
+          presentation: "card",
+        }}
+      >
         <Stack.Screen
           name="Main"
+          animation="slide_from_right"
           component={TabNav}
           options={{
             headerShown: false,
           }}
         />
-        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen name="User" component={UserScreen} options={{}} />
         <Stack.Screen
-        name="ProductDetails"
-        component={ProductDetailsScreen}
-        options={{ headerTitle: "Product Details" }}
-      />
-       <Stack.Screen
-        name="Cart"
-        component={CartScreen}
-        options={{ headerTitle: "My Cart" }}
-      />
+          name="ProductDetails"
+          component={ProductDetailsScreen}
+          options={{ headerTitle: "Product Details" }}
+        />
+        <Stack.Screen
+          name="Cart"
+          component={CartScreen}
+          options={{ headerTitle: "My Cart" }}
+        />
+
+        <Stack.Screen
+          name="Camera"
+          component={DetectScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack.Navigator>
     );
   };
 
   const AuthStack = () => {
     return (
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          animation: "slide_from_right",
+          gestureEnabled: true,
+          gestureDirection: "horizontal",
+          animationEnabled: true,
+          animationTypeForReplace: "push",
+          headerMode: "screen",
+          presentation: "card",
+        }}
+      >
         <Stack.Screen
           name="Login"
           component={LoginScreen}

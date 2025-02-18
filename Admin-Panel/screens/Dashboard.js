@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  SafeAreaView,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -21,7 +21,6 @@ const Dashboard = ({ navigation }) => {
       // Clear the stored token
       await AsyncStorage.removeItem("adminToken");
       setToken(null); // Update the token in AuthContext
-      navigation.replace("Login"); // Navigate to the login screen
     } catch (error) {
       console.error("Error logging out:", error);
       Alert.alert("Error", "Failed to log out. Please try again.");
@@ -73,7 +72,10 @@ const Dashboard = ({ navigation }) => {
           </View>
           <View style={styles.headerIcons}>
             <Ionicons name="person-circle-outline" size={50} color="#fff" />
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={styles.logoutButton}
+            >
               <Ionicons name="log-out-outline" size={30} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -81,15 +83,11 @@ const Dashboard = ({ navigation }) => {
 
         {/* Analytics Section */}
         <View style={styles.analyticsSection}>
-          <View
-            style={[styles.analyticsCard, { backgroundColor: "#FF6F61" }]}
-          >
+          <View style={[styles.analyticsCard, { backgroundColor: "#FF6F61" }]}>
             <Text style={styles.analyticsTitle}>Active Admins</Text>
             <Text style={styles.analyticsValue}>5</Text>
           </View>
-          <View
-            style={[styles.analyticsCard, { backgroundColor: "#6EB5FF" }]}
-          >
+          <View style={[styles.analyticsCard, { backgroundColor: "#6EB5FF" }]}>
             <Text style={styles.analyticsTitle}>Orders</Text>
             <Text style={styles.analyticsValue}>120</Text>
           </View>
@@ -100,10 +98,7 @@ const Dashboard = ({ navigation }) => {
           {features.map((feature) => (
             <TouchableOpacity
               key={feature.id}
-              style={[
-                styles.featureCard,
-                { backgroundColor: feature.color },
-              ]}
+              style={[styles.featureCard, { backgroundColor: feature.color }]}
               onPress={feature.onPress}
             >
               <Ionicons name={feature.icon} size={30} color="#fff" />
