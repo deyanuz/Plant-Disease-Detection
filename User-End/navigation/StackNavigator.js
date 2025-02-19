@@ -22,6 +22,7 @@ import DrawerContent from "../components/DrawerContent";
 import Entypo from "react-native-vector-icons/Entypo";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { CartProvider, useCart } from "../context/CartContext";
 
 import Chatbot from "../screens/ChatbotScreen";
 
@@ -94,6 +95,8 @@ const StackNavigator = () => {
 
   // Bottom Tab Navigator
   const TabNav = ({ route }) => {
+    const { totalItems } = useCart();
+
     return (
       <Tab.Navigator
         animation="slide_from_right"
@@ -102,25 +105,36 @@ const StackNavigator = () => {
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
             let iconName;
-            let IconComponent; // To dynamically select the icon library
+            let IconComponent;
 
             if (route.name === "Home") {
               iconName = "home";
-              IconComponent = Entypo; // Icon from Entypo
+              IconComponent = Entypo;
             } else if (route.name === "Chatbot") {
               iconName = "chat-processing-outline";
-              IconComponent = MaterialCommunityIcons; // Icon from MaterialCommunityIcons
-            } else if (route.name === "Order") {
-              iconName = "shopping-bag";
-              IconComponent = Entypo; // Icon from Entypo
+              IconComponent = MaterialCommunityIcons;
+            } else if (route.name === "Cart") {
+              iconName = "shopping-cart";
+              IconComponent = Entypo;
+              return (
+                <View>
+                  <IconComponent name={iconName} size={size} color={color} />
+                  {totalItems > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>
+                        {totalItems > 99 ? "99+" : totalItems}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
             } else if (route.name === "Pay") {
               iconName = "credit-card";
-              IconComponent = Entypo; // Icon from Entypo
+              IconComponent = Entypo;
             }
 
             return <IconComponent name={iconName} size={size} color={color} />;
           },
-
           tabBarActiveTintColor: "#013220",
           tabBarInactiveTintColor: "gray",
           headerShown: route.name !== "Home",
@@ -147,10 +161,9 @@ const StackNavigator = () => {
           component={Chatbot}
           options={{ headerShown: false }}
         />
-        {/* Camera screen moved to MainStack */}
         <Tab.Screen
-          name="Order"
-          component={OrderScreen}
+          name="Cart"
+          component={CartScreen}
           options={{ headerShown: false }}
         />
         <Tab.Screen
@@ -197,12 +210,19 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Cart"
           component={CartScreen}
-          options={{ headerTitle: "My Cart" }}
+          options={{ headerShown: false }}
         />
 
         <Stack.Screen
           name="Camera"
           component={DetectScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="Pay"
+          component={PayScreen}
           options={{
             headerShown: false,
           }}
@@ -249,15 +269,17 @@ const StackNavigator = () => {
   };
 
   return (
-    <NavigationContainer>
-      {isSplashVisible ? (
-        <SplashScreen />
-      ) : token == null || token == "" ? (
-        <AuthStack />
-      ) : (
-        <MainStack />
-      )}
-    </NavigationContainer>
+    <CartProvider>
+      <NavigationContainer>
+        {isSplashVisible ? (
+          <SplashScreen />
+        ) : token == null || token == "" ? (
+          <AuthStack />
+        ) : (
+          <MainStack />
+        )}
+      </NavigationContainer>
+    </CartProvider>
   );
 };
 
@@ -283,5 +305,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
+  },
+  badge: {
+    position: "absolute",
+    right: -6,
+    top: -3,
+    backgroundColor: "#FF4444",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 2,
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

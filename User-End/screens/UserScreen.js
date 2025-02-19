@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Entypo";
+import placeholder from "../assets/placeholder.jpg";
 import {
   StyleSheet,
   Text,
@@ -11,76 +12,47 @@ import {
   Pressable,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import IpAddress from "../DeviceConfig";
+import { useCart } from "../context/CartContext";
 
 const UserScreen = () => {
   const navigation = useNavigation();
   const [products, setProducts] = useState([]);
+  const { addToCart } = useCart();
 
   const categories = [
     { id: 1, name: "Jute", icon: "🌾" },
     { id: 2, name: "Tomato", icon: "🍅" },
     { id: 3, name: "Strawberry", icon: "🍓" },
     { id: 4, name: "Potato", icon: "🥔" },
-  ];
-
-  // Simulate fetching JSON data
+  ]; // Simulate fetching JSON data
   useEffect(() => {
     const fetchProducts = async () => {
-      const data = [
-        {
-          id: 1,
-          name: "Rice Seeds",
-          price: "$20.99/Kg",
-          image:
-            "https://media.istockphoto.com/id/1681725184/photo/rice.jpg?s=2048x2048&w=is&k=20&c=Ibpv_PUMmFVmi1yqeGt4D3hK4hg0Jus4uczuCVu0cNY=",
-          description: "High-quality rice seeds for better yield.",
-        },
-        {
-          id: 2,
-          name: "Jute Seeds",
-          price: "$13.99/Kg",
-          image:
-            "https://media.istockphoto.com/id/1433096076/photo/soybean-grain-in-a-hands-of-successful-farmer.jpg?s=2048x2048&w=is&k=20&c=8XLqWLjlZA4sTgEyKEEVb9-Uq9O4eBG4zG4Iuru2EBg=",
-          description: "Best jute seeds for your farming needs.",
-        },
-        {
-          id: 3,
-          name: "Strawberry Seeds",
-          price: "$24.99/Kg",
-          image:
-            "https://media.istockphoto.com/id/1157946861/photo/red-berry-strawberry-isolated.jpg?s=2048x2048&w=is&k=20&c=1E-5CHWTvhWJPt7M9TfSYUwZE3_WRvmLobGDRlHRQ-U=",
-          description: "Premium strawberry seeds for delicious fruits.",
-        },
-        {
-          id: 4,
-          name: "Tomato Seeds",
-          price: "$28.99/Kg",
-          image:
-            "https://media.istockphoto.com/id/1320269431/photo/tomato-seed-collection.jpg?s=1024x1024&w=is&k=20&c=4uSQMx_1Q7a4MA4J5aq3ECOpKOX9sjqsbFuztK1MK38=",
-          description: "Grow juicy tomatoes with these seeds.",
-        },
-        {
-          id: 5,
-          name: "Potato Seeds",
-          price: "$15.99/Kg",
-          image:
-            "https://media.istockphoto.com/id/1459660565/photo/manual-planting-of-potato-tubers-in-the-ground-early-spring-preparation-for-the-garden-season.jpg?s=2048x2048&w=is&k=20&c=QSLciCCbCJG2iZxroqlyMmYZH2l-cHWLwxP3mh4x8tU=",
-          description: "Potato seeds for the best crops.",
-        },
-        {
-          id: 6,
-          name: "Potato Seeds",
-          price: "$15.99/Kg",
-          image:
-            "https://media.istockphoto.com/id/1459660565/photo/manual-planting-of-potato-tubers-in-the-ground-early-spring-preparation-for-the-garden-season.jpg?s=2048x2048&w=is&k=20&c=QSLciCCbCJG2iZxroqlyMmYZH2l-cHWLwxP3mh4x8tU=",
-          description: "Potato seeds for the best crops.",
-        },
-      ];
-      setProducts(data);
+      try {
+        const response = await axios.get(`http://${IpAddress}:8000/products`);
+        console.log(response.data);
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        // You could set some error state here if needed
+      }
     };
 
     fetchProducts();
+    console.log(products);
   }, []);
+
+  const handleAddToCart = (item) => {
+    const cartItem = {
+      id: item._id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+      quantity: 1,
+    };
+    addToCart(cartItem);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -121,20 +93,45 @@ const UserScreen = () => {
               navigation.navigate("ProductDetails", { product: item })
             }
           >
-            <Image source={{ uri: item.image }} style={styles.productImage} />
+            <Image
+              source={item.image ? { uri: item.image } : placeholder}
+              style={styles.productImage}
+            />
+
             <View style={styles.productInfo}>
-              <Text style={styles.productName}>{item.name}</Text>
-              <Text style={styles.productPrice}>{item.price}</Text>
+              <Text style={styles.productName} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                <View>
+                  <Text style={styles.productPrice}>${item.price}/Kg</Text>
+                  <Text style={styles.productDescription} numberOfLines={1}>
+                    {item.description}
+                  </Text>
+                </View>
+                <Pressable
+                  style={styles.addButton}
+                  onPress={() => handleAddToCart(item)}
+                  android_ripple={{
+                    color: "#fff",
+                    borderless: true,
+                    radius: 18,
+                  }}
+                >
+                  <Text style={styles.addButtonText}>+</Text>
+                </Pressable>
+              </View>
             </View>
-            <Pressable
-              style={styles.addButton}
-              onPress={() => alert(`${item.name} added to cart`)}
-            >
-              <Text style={styles.addButtonText}>+</Text>
-            </Pressable>
           </Pressable>
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => index}
       />
 
       {/* Add the Camera Button */}
@@ -157,24 +154,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F8F8",
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
   },
   searchContainer: {
-    marginVertical: 10,
+    marginVertical: 15,
   },
   searchInputWrapper: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    borderRadius: 10,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: "#013220",
+    height: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
-    padding: 10,
-    fontSize: 14,
+    padding: 12,
+    fontSize: 16,
+    color: "#333",
   },
   searchIcon: {
     marginRight: 5,
@@ -189,21 +193,22 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 20,
+    paddingHorizontal: 5,
   },
   categoryItem: {
     backgroundColor: "#FFF",
-    width: 80,
-    height: 80,
-    borderRadius: 35,
+    width: 85,
+    height: 85,
+    borderRadius: 42.5,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 3,
+    elevation: 4,
     shadowColor: "#013220",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
-    borderWidth: 1,
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    borderWidth: 1.5,
     borderColor: "#013220",
   },
   categoryIcon: {
@@ -218,73 +223,96 @@ const styles = StyleSheet.create({
   },
   productCard: {
     backgroundColor: "#FFF",
-    flex: 1,
+    width: "47%",
+    height: 250,
     margin: 5,
-    padding: 10,
-    borderRadius: 10,
-    alignItems: "flex-start",
-    elevation: 3,
+    padding: 12,
+    borderRadius: 15,
+    alignItems: "center",
+    elevation: 4,
     position: "relative",
     borderWidth: 1,
-    borderColor: "#013220",
+    borderColor: "#E0E0E0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    overflow: "hidden",
   },
   productImage: {
-    width: 100,
-    height: 100,
-    resizeMode: "contain",
-    alignSelf: "center",
+    width: "100%",
+    height: 120,
+    resizeMode: "cover",
+    borderRadius: 10,
+    marginBottom: 8,
+    backgroundColor: "#f5f5f5",
   },
   productInfo: {
+    width: "100%",
+    height: 80,
     alignItems: "flex-start",
-    marginVertical: 5,
+    justifyContent: "space-between",
+    paddingVertical: 4,
   },
   productName: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: "#013220",
+    marginBottom: 2,
+    width: "100%",
   },
   productPrice: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#013220",
-    fontWeight: "bold",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  productDescription: {
+    fontSize: 12,
+    color: "#666",
+    width: "100%",
+    lineHeight: 16,
   },
   addButton: {
     backgroundColor: "#013220",
-    borderRadius: 15,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderRadius: 20,
+    width: 36,
+    height: 36,
     position: "absolute",
-    bottom: 10,
-    right: 10,
+    bottom: 8,
+    right: 8,
     justifyContent: "center",
     alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
   },
   addButtonText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
+    lineHeight: 20,
   },
   cameraButton: {
     position: "absolute",
     right: 20,
     bottom: 20,
-    width: 60,
-    height: 60,
+    width: 65,
+    height: 65,
     backgroundColor: "#013220",
-    borderRadius: 30,
+    borderRadius: 32.5,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 999,
-    shadowColor: "#013220",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
     elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
     borderWidth: 2,
-    borderColor: "#013220",
+    borderColor: "#FFF",
   },
   shadow: {
     shadowColor: "#013220",
