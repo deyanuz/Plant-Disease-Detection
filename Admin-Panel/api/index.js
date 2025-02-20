@@ -4,6 +4,7 @@ const cors = require("cors");
 const Product = require("./models/product");
 const Admin = require("./models/admins");
 const Order = require("./models/order");
+const Notification = require("./models/notification");
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -78,6 +79,14 @@ app.post("/products", async (req, res) => {
     const savedProduct = await newProduct.save();
     console.log('Product saved successfully:', savedProduct);
     
+    // Add notification
+    await createNotification(
+      "New Product Added",
+      `${savedProduct.name} has been added to the store`,
+      "product",
+      false
+    );
+
     res.status(201).json(savedProduct);
   } catch (error) {
     console.error("Server error creating product:", error);
@@ -328,6 +337,66 @@ app.get("/dashboard/stats", async (req, res) => {
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     res.status(500).json({ error: "Failed to fetch dashboard stats" });
+  }
+});
+
+// Get notifications
+app.get("/notifications", async (req, res) => {
+  try {
+    const notifications = await Notification.find({ forAdmin: true })
+      .sort({ createdAt: -1 });
+    res.json(notifications);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch notifications" });
+  }
+});
+
+// Mark notification as read
+app.put("/notifications/:id/read", async (req, res) => {
+  try {
+    const notification = await Notification.findByIdAndUpdate(
+      req.params.id,
+      { isRead: true },
+      { new: true }
+    );
+    res.json(notification);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update notification" });
+  }
+});
+
+// Create notification helper function
+const createNotification = async (title, message, type, forAdmin = false) => {
+  try {
+    const notification = new Notification({
+      title,
+      message,
+      type,
+      forAdmin
+    });
+    await notification.save();
+    return notification;
+  } catch (error) {
+    console.error("Error creating notification:", error);
+  }
+};
+
+// Update the order creation endpoint
+app.post("/orders", async (req, res) => {
+  try {
+    // ... existing order creation code ...
+
+    // Add notification for admin
+    await createNotification(
+      "New Order Received",
+      `New order of $${req.body.totalAmount} from ${req.body.customerName}`,
+      "order",
+      true
+    );
+
+    res.status(201).json(order);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create order" });
   }
 });
 

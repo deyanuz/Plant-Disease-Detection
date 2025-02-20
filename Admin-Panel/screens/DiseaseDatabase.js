@@ -1,11 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { COLORS, SIZES } from '../styles/theme';
+import ScreenHeader from '../components/ScreenHeader';
 
-const DiseaseDatabase = () => {
+const DiseaseDatabase = ({ navigation }) => {
   // Add disease database implementation here
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Disease Database</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <ScreenHeader
+          title="Disease Database"
+          leftIcon="menu-outline"
+          onLeftPress={() => navigation.openDrawer()}
+        />
+        {/* Rest of your existing DiseaseDatabase content */}
+      </SafeAreaView>
     </View>
   );
 };
@@ -13,12 +22,10 @@ const DiseaseDatabase = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: COLORS.background,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  safeArea: {
+    flex: 1,
   },
 });
 

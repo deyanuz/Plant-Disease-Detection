@@ -16,6 +16,7 @@ import IpAddress from "../DeviceConfig";
 import { COLORS, SIZES, FONTS, SHADOWS } from "../styles/theme";
 import ScreenHeader from "../components/ScreenHeader";
 import Card from "../components/Card";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const BASE_URL = `http://${IpAddress}:9000`;
 
@@ -56,25 +57,25 @@ const Dashboard = () => {
       title: "Total Admins",
       value: stats.totalAdmins,
       icon: "people-outline",
-      color: COLORS.accent,
+      color: COLORS.analyticsCards.admins,
     },
     {
       title: "Total Products",
       value: stats.totalProducts,
       icon: "cube-outline",
-      color: COLORS.primary,
+      color: COLORS.analyticsCards.products,
     },
     {
       title: "Total Orders",
       value: stats.totalOrders,
       icon: "cart-outline",
-      color: COLORS.secondary,
+      color: COLORS.analyticsCards.orders,
     },
     {
       title: "Total Users",
       value: stats.totalUsers,
       icon: "person-outline",
-      color: COLORS.info,
+      color: COLORS.analyticsCards.users,
     },
     {
       title: "Pending Orders",

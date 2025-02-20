@@ -12,8 +12,11 @@ import UserHistory from "../screens/UserHistory";
 import Notifications from "../screens/Notifications";
 import DiseaseDatabase from "../screens/DiseaseDatabase";
 import BottomTabs from "./BottomTabs";
+import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
 
 const Drawer = createDrawerNavigator();
+
+
 
 const DrawerNavigation = () => {
   const { setToken } = useContext(AuthContext);
@@ -32,14 +35,19 @@ const DrawerNavigation = () => {
     <Drawer.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#4CAF50',
+          backgroundColor: COLORS.primary,
         },
-        headerTintColor: '#fff',
-        drawerActiveTintColor: '#4CAF50',
+        headerTintColor: COLORS.white,
         drawerStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: COLORS.drawer.background,
           width: 280,
         },
+        drawerLabelStyle: {
+          color: COLORS.drawer.text,
+        },
+        drawerActiveTintColor: COLORS.drawer.activeText,
+        drawerInactiveTintColor: COLORS.drawer.inactiveText,
+        drawerActiveBackgroundColor: COLORS.drawer.activeBackground,
       }}
     >
       <Drawer.Screen 
@@ -56,6 +64,7 @@ const DrawerNavigation = () => {
         name="Admins" 
         component={AddAdmin}
         options={{
+          headerShown: false,
           drawerIcon: ({color}) => (
             <Ionicons name="people-outline" size={22} color={color} />
           ),
@@ -65,6 +74,7 @@ const DrawerNavigation = () => {
         name="History" 
         component={UserHistory}
         options={{
+          headerShown: false,
           drawerIcon: ({color}) => (
             <Ionicons name="time-outline" size={22} color={color} />
           ),
@@ -74,6 +84,7 @@ const DrawerNavigation = () => {
         name="Notifications" 
         component={Notifications}
         options={{
+          headerShown: false,
           drawerIcon: ({color}) => (
             <Ionicons name="notifications-outline" size={22} color={color} />
           ),
@@ -83,6 +94,7 @@ const DrawerNavigation = () => {
         name="Disease DB" 
         component={DiseaseDatabase}
         options={{
+          headerShown: false,
           drawerIcon: ({color}) => (
             <Ionicons name="leaf-outline" size={22} color={color} />
           ),
