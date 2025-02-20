@@ -1,44 +1,43 @@
 const mongoose = require("mongoose");
 
-const productSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      trim: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    image: {
-      type: String,
-      required: false,
-      default: "https://via.placeholder.com/150",
-    },
-    category: {
-      type: String,
-      required: true,
-      enum: ["Jute", "Tomato", "Strawberry", "Potato", "Other"], // Define specific categories
-      default: "Other",
-    },
-    stock: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+const productSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, "Product name is required"],
+    trim: true,
+    minlength: [2, "Product name must be at least 2 characters long"]
   },
-  {
-    timestamps: true, // Adds createdAt and updatedAt fields automatically
+  description: {
+    type: String,
+    trim: true,
+    default: ""
+  },
+  price: {
+    type: Number,
+    required: [true, "Price is required"],
+    min: [0, "Price cannot be negative"]
+  },
+  image: {
+    type: String,
+    default: "https://via.placeholder.com/150"
+  },
+  category: {
+    type: String,
+    required: [true, "Category is required"],
+    enum: {
+      values: ["Jute", "Tomato", "Strawberry", "Potato", "Other"],
+      message: "Invalid category. Must be one of: Jute, Tomato, Strawberry, Potato, Other"
+    }
+  },
+  stock: {
+    type: Number,
+    required: true,
+    min: [0, "Stock cannot be negative"],
+    default: 0
   }
-);
+}, {
+  timestamps: true
+});
 
-module.exports = mongoose.model("Product", productSchema);
+const Product = mongoose.model("Product", productSchema);
+module.exports = Product;

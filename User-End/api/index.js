@@ -264,31 +264,11 @@ app.post("/create-payment-intent", async (req, res) => {
   }
 });
 
-//productcreate
-app.post("/products", async (req, res) => {
-  try {
-    const { name, description, price, image, category, stock } = req.body;
-
-    const newProduct = new Product({
-      name,
-      description,
-      price,
-      image,
-      category,
-      stock,
-    });
-
-    const savedProduct = await newProduct.save();
-    res.status(201).json(savedProduct);
-  } catch (error) {
-    console.error("Error creating product:", error.message);
-    res.status(500).json({ error: "Failed to create product" });
-  }
-});
 //getallproduct
 app.get("/products", async (req, res) => {
   try {
     const products = await Product.find();
+    console.log(products);
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products:", error.message);
