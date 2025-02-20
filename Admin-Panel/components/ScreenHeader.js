@@ -27,9 +27,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.padding / 2,
+    paddingVertical: SIZES.padding,
     backgroundColor: 'transparent',
-    marginBottom: -SIZES.padding,
   },
   title: {
     ...FONTS.bold,

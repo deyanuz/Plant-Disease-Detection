@@ -5,11 +5,13 @@ import Dashboard from "../screens/Dashboard";
 import AddProduct from "../screens/AddProduct";
 import ManageOrders from "../screens/ManageOrders";
 import TransactionManagement from "../screens/TransactionManagement";
+import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
 
 const Tab = createBottomTabNavigator();
 
-const BottomTabs = () => (
+const BottomTabs = ({ initialRoute = "Home" }) => (
   <Tab.Navigator
+    initialRouteName={initialRoute}
     screenOptions={({ route }) => ({
       headerShown: false,
       tabBarStyle: {
@@ -25,7 +27,7 @@ const BottomTabs = () => (
         shadowOpacity: 0.2,
         shadowRadius: 5,
       },
-      tabBarActiveTintColor: "#4CAF50",
+      tabBarActiveTintColor: COLORS.primary,
       tabBarInactiveTintColor: "#888",
       tabBarLabelStyle: {
         fontSize: 12,
