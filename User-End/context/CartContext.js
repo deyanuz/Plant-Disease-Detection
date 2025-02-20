@@ -42,6 +42,7 @@ export const CartProvider = ({ children }) => {
       value={{
         cartItems,
         addToCart,
+        setCartItems,
         removeFromCart,
         updateQuantity,
         totalItems: cartItems.reduce((sum, item) => sum + item.quantity, 0),

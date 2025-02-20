@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -6,16 +6,23 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Entypo";
 import placeholder from "../assets/placeholder.jpg";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../context/CartContext";
+import { AuthContext } from "../auth/AuthContext";
+import axios from "axios";
+import IpAddress from "../DeviceConfig";
 
 const CartScreen = () => {
   const navigation = useNavigation();
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, setCartItems } = useCart();
+  const { userID } = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(false);
 
   const calculateItemTotal = (price, quantity) => {
     const numericPrice =
@@ -75,6 +82,39 @@ const CartScreen = () => {
     </View>
   );
 
+  const handleCheckout = async () => {
+    try {
+      setIsLoading(true);
+
+      const orderProducts = cartItems.map((item) => ({
+        productId: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: parseFloat(item.price),
+      }));
+
+      const orderData = {
+        userID,
+        products: orderProducts,
+        totalAmount: totalPrice,
+      };
+
+      const response = await axios.post(
+        `http://${IpAddress}:8000/orders`,
+        orderData
+      );
+
+      if (response.status == 200) {
+        // Clear cart and navigate to success screen
+        setCartItems([]);
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      Alert.alert("Error", "Failed to process your order. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -109,10 +149,18 @@ const CartScreen = () => {
               <Text style={styles.totalAmount}>${totalPrice.toFixed(2)}</Text>
             </View>
             <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={() => navigation.navigate("Pay")}
+              style={[
+                styles.checkoutButton,
+                isLoading && styles.checkoutButtonDisabled,
+              ]}
+              onPress={handleCheckout}
+              disabled={isLoading}
             >
-              <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+              {isLoading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -290,6 +338,10 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: 20,
+  },
+  checkoutButtonDisabled: {
+    backgroundColor: "#666",
+    opacity: 0.7,
   },
 });
 
