@@ -10,13 +10,17 @@ import {
   ActivityIndicator,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import axios from "axios";
+import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
 import IpAddress from "../DeviceConfig";
+import ScreenHeader from '../components/ScreenHeader';
+import Card from '../components/Card';
 
 const BASE_URL = `http://${IpAddress}:9000`;
 
-const AddAdmin = () => {
+const AddAdmin = ({ navigation }) => {
   const [admins, setAdmins] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,157 +90,236 @@ const AddAdmin = () => {
   };
 
   const renderAdminItem = ({ item }) => (
-    <View style={styles.adminItem}>
-      <Text style={styles.adminEmail}>{item.email}</Text>
-      {item.isPrimary && <Text style={styles.primaryLabel}>Primary Admin</Text>}
-    </View>
+    <Card style={styles.adminCard}>
+      <View style={styles.adminContent}>
+        <View style={styles.adminInfo}>
+          <Ionicons name="person-circle-outline" size={24} color={COLORS.primary} />
+          <Text style={styles.adminEmail}>{item.email}</Text>
+        </View>
+        {item.isPrimary ? (
+          <View style={styles.primaryBadge}>
+            <Text style={styles.primaryLabel}>Primary Admin</Text>
+          </View>
+        ) : (
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => handleDeleteAdmin(item._id, item.isPrimary)}
+          >
+            <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+          </TouchableOpacity>
+        )}
+      </View>
+    </Card>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Admin Management</Text>
-
-      <View style={styles.addAdminContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter new admin email"
-          value={newAdminEmail}
-          onChangeText={setNewAdminEmail}
-          keyboardType="email-address"
+    <LinearGradient
+      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader
+          title="Admin Management"
+          leftIcon="menu-outline"
+          onLeftPress={() => navigation.openDrawer()}
         />
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.inputPassword}
-            placeholder="Password"
-            secureTextEntry={!isPasswordVisible}
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity
-            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-          >
-            <Ionicons
-              name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-              size={20}
-              color="#aaa"
+        
+        <View style={styles.content}>
+          <Card style={styles.formCard}>
+            <Text style={styles.formTitle}>Add New Admin</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter admin email"
+              placeholderTextColor={COLORS.textLight}
+              value={newAdminEmail}
+              onChangeText={setNewAdminEmail}
+              keyboardType="email-address"
             />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.inputPassword}
-            placeholder="Confirm Password"
-            secureTextEntry={!isConfirmPasswordVisible}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-          <TouchableOpacity
-            onPress={() =>
-              setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
-            }
-          >
-            <Ionicons
-              name={
-                isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"
-              }
-              size={20}
-              color="#aaa"
-            />
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
-          <Text style={styles.addButtonText}>Add Admin</Text>
-        </TouchableOpacity>
-      </View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Password"
+                placeholderTextColor={COLORS.textLight}
+                secureTextEntry={!isPasswordVisible}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              >
+                <Ionicons
+                  name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color={COLORS.textLight}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Confirm Password"
+                placeholderTextColor={COLORS.textLight}
+                secureTextEntry={!isConfirmPasswordVisible}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+              >
+                <Ionicons
+                  name={isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color={COLORS.textLight}
+                />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
+              <Text style={styles.addButtonText}>Add Admin</Text>
+            </TouchableOpacity>
+          </Card>
 
-      {loading && <ActivityIndicator size="large" color="#4CAF50" />}
-
-      {!loading && (
-        <FlatList
-          data={admins}
-          keyExtractor={(item) => item._id}
-          renderItem={renderAdminItem}
-          ListEmptyComponent={
-            <Text style={styles.emptyMessage}>No admins available.</Text>
-          }
-        />
-      )}
-    </SafeAreaView>
+          <View style={styles.listContainer}>
+            <Text style={styles.listTitle}>Admin List</Text>
+            {loading ? (
+              <ActivityIndicator size="large" color={COLORS.white} />
+            ) : (
+              <FlatList
+                data={admins}
+                renderItem={renderAdminItem}
+                keyExtractor={(item) => item._id}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="people-outline" size={50} color={COLORS.textLight} />
+                    <Text style={styles.emptyMessage}>No admins available</Text>
+                  </View>
+                }
+              />
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
   },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
+  content: {
+    flex: 1,
+    padding: SIZES.padding,
   },
-  addAdminContainer: {
-    marginBottom: 20,
+  formCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
+    marginBottom: SIZES.padding,
+  },
+  formTitle: {
+    ...FONTS.bold,
+    fontSize: SIZES.large,
+    color: COLORS.primary,
+    marginBottom: SIZES.padding,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 15,
-    fontSize: 16,
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius / 2,
+    padding: SIZES.padding,
+    marginBottom: SIZES.padding,
+    fontSize: SIZES.font,
+    color: COLORS.text,
+    backgroundColor: COLORS.background,
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 6,
-    marginBottom: 15,
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius / 2,
+    marginBottom: SIZES.padding,
+    backgroundColor: COLORS.background,
   },
-  inputPassword: {
+  passwordInput: {
     flex: 1,
-    fontSize: 16,
+    padding: SIZES.padding,
+    fontSize: SIZES.font,
+    color: COLORS.text,
+  },
+  eyeIcon: {
+    padding: SIZES.padding,
   },
   addButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: "center",
+    backgroundColor: COLORS.primary,
+    padding: SIZES.padding,
+    borderRadius: SIZES.radius,
+    alignItems: 'center',
+    ...SHADOWS.medium,
   },
   addButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
+    ...FONTS.bold,
+    color: COLORS.white,
+    fontSize: SIZES.font,
   },
-  adminItem: {
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    marginBottom: 10,
-    backgroundColor: "#f9f9f9",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  listContainer: {
+    flex: 1,
+  },
+  listTitle: {
+    ...FONTS.bold,
+    fontSize: SIZES.large,
+    color: COLORS.white,
+    marginBottom: SIZES.padding,
+  },
+  adminCard: {
+    marginBottom: SIZES.padding,
+  },
+  adminContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  adminInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   adminEmail: {
-    fontSize: 16,
-    color: "#333",
+    ...FONTS.medium,
+    fontSize: SIZES.font,
+    color: "#000",
+    marginLeft: SIZES.padding,
+  },
+  primaryBadge: {
+    backgroundColor: COLORS.success,
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.base,
+    borderRadius: SIZES.radius,
   },
   primaryLabel: {
-    fontSize: 14,
-    color: "#4CAF50",
-    fontWeight: "bold",
+    ...FONTS.medium,
+    fontSize: SIZES.small,
+    color: COLORS.white,
+  },
+  deleteButton: {
+    padding: SIZES.base,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SIZES.padding * 2,
   },
   emptyMessage: {
-    textAlign: "center",
-    fontSize: 16,
-    color: "#888",
-    marginTop: 20,
+    ...FONTS.medium,
+    fontSize: SIZES.font,
+    color: COLORS.textLight,
+    marginTop: SIZES.padding,
   },
 });
 

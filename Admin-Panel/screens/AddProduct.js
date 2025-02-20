@@ -10,13 +10,17 @@ import {
   FlatList,
   Modal,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
+import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
+import Ionicons from "react-native-vector-icons/Ionicons";
+import ScreenHeader from '../components/ScreenHeader';
 
 const BASE_URL = `http://${IpAddress}:9000`;
 
-const AddProduct = () => {
+const AddProduct = ({ navigation }) => {
   // Form states
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -181,66 +185,77 @@ const AddProduct = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Add Product Form */}
-      <View style={styles.formContainer}>
-        <Text style={styles.header}>Add Product</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Product Name"
-          value={name}
-          onChangeText={setName}
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScreenHeader
+          title="Add Product"
+          leftIcon="menu-outline"
+          onLeftPress={() => navigation.openDrawer()}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Description"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Price"
-          value={price}
-          keyboardType="numeric"
-          onChangeText={setPrice}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Category"
-          value={category}
-          onChangeText={setCategory}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Stock"
-          value={stock}
-          keyboardType="numeric"
-          onChangeText={setStock}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddProduct}>
-          <Text style={styles.addButtonText}>Add Product</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.content}>
+          {/* Add Product Form */}
+          <View style={styles.formContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Product Name"
+              value={name}
+              onChangeText={setName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Description"
+              value={description}
+              onChangeText={setDescription}
+              multiline
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Price"
+              value={price}
+              keyboardType="numeric"
+              onChangeText={setPrice}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Category"
+              value={category}
+              onChangeText={setCategory}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Stock"
+              value={stock}
+              keyboardType="numeric"
+              onChangeText={setStock}
+            />
+            <TouchableOpacity 
+              style={styles.addButton} 
+              onPress={handleAddProduct}
+            >
+              <Text style={styles.buttonText}>Add Product</Text>
+            </TouchableOpacity>
+          </View>
 
-      {/* Product List */}
-      <View style={styles.listContainer}>
-        <Text style={styles.subHeader}>Product List</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color="#4CAF50" />
-        ) : (
-          <FlatList
-            data={products}
-            keyExtractor={(item) => item._id}
-            renderItem={renderProductCard}
-            ListEmptyComponent={
-              <Text style={styles.emptyMessage}>No products available.</Text>
-            }
-            contentContainerStyle={styles.listContentContainer}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+          {/* Product List */}
+          <View style={styles.listContainer}>
+            <Text style={styles.listHeader}>Product List</Text>
+            {loading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <FlatList
+                data={products}
+                keyExtractor={(item) => item._id}
+                renderItem={renderProductCard}
+                ListEmptyComponent={
+                  <Text style={styles.emptyMessage}>No products available.</Text>
+                }
+                contentContainerStyle={styles.listContentContainer}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
 
       {/* Update Product Modal */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
@@ -297,91 +312,59 @@ const AddProduct = () => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.background,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: SIZES.padding,
   },
   formContainer: {
-    backgroundColor: "#f5f5f5",
-    padding: 15,
-    borderRadius: 10,
-    margin: 10,
-    marginBottom: 5,
-  },
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: 10,
-    marginBottom: 60, // Add padding for bottom navigation
-  },
-  listContentContainer: {
-    paddingBottom: 20, // Add padding at the bottom of the list
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  subHeader: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginVertical: 10,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
+    padding: SIZES.padding,
+    marginBottom: SIZES.padding,
+    ...SHADOWS.medium,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-    backgroundColor: "#fff",
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius / 2,
+    padding: SIZES.padding,
+    marginBottom: SIZES.padding,
+    fontSize: SIZES.font,
   },
   addButton: {
-    backgroundColor: "#4CAF50",
-    padding: 15,
-    borderRadius: 5,
-    alignItems: "center",
+    backgroundColor: COLORS.primary,
+    padding: SIZES.padding,
+    borderRadius: SIZES.radius,
+    alignItems: 'center',
   },
-  addButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
+  buttonText: {
+    color: COLORS.white,
+    fontSize: SIZES.font,
+    fontWeight: 'bold',
   },
-  productCard: {
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 10,
-    backgroundColor: "#fff",
-    elevation: 2, // Android shadow
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+  listContainer: {
+    flex: 1,
   },
-  productName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
+  listHeader: {
+    fontSize: SIZES.large,
+    fontWeight: 'bold',
+    marginBottom: SIZES.padding,
+    color: COLORS.text,
   },
-  productDetails: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 2,
-  },
-  productDescription: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 5,
-    fontStyle: "italic",
+  listContentContainer: {
+    paddingBottom: 20, // Add padding at the bottom of the list
   },
   emptyMessage: {
     textAlign: "center",
@@ -429,6 +412,38 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  productCard: {
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: "#fff",
+    elevation: 2, // Android shadow
+    shadowColor: "#000", // iOS shadow
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  productName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  productDetails: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 2,
+  },
+  productDescription: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 5,
+    fontStyle: "italic",
   },
 });
 

@@ -1,19 +1,34 @@
 export const COLORS = {
-  primary: '#4CAF50',
-  primaryDark: '#388E3C',
-  secondary: '#2196F3',
-  accent: '#FF6F61',
-  background: '#F5F7FA',
+  primary: '#2F5233',          // Deep forest green (header)
+  primaryDark: '#1B4332',      // Darker green (sidebar background)
+  secondary: '#386641',        // Medium forest green
+  accent: '#A7C957',          // Light olive green
+  background: '#1F3624',       // Softer dark green for dashboard background
   white: '#FFFFFF',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#E0E0E0',
-  error: '#FF5252',
-  success: '#4CAF50',
-  warning: '#FFC107',
-  info: '#2196F3',
-  gradientStart: '#5A9',
-  gradientEnd: '#013220',
+  text: '#F0F7F4',            // Off-white
+  textLight: '#DDE5B6',       // Light sage
+  border: '#40916C',          // Medium sage green
+  error: '#E63946',           // Bright red
+  success: '#386641',         // Medium forest green
+  warning: '#F8B945',         // Warm yellow
+  info: '#40916C',            // Medium sage green
+  gradientStart: '#2F5233',   // Deep forest green
+  gradientEnd: '#1F3624',     // Softer dark green
+  drawer: {
+    background: '#1B4332',    // Keeping the sidebar color you liked
+    activeBackground: '#2F5233', // Deep forest green (matches primary)
+    text: '#F0F7F4',          // Off-white
+    activeText: '#FFFFFF',    // Pure white
+    inactiveText: '#DDE5B6',  // Light sage
+  },
+  analyticsCards: {
+    admins: '#A7C957',        // Light olive green
+    products: '#588157',      // Sage green
+    orders: '#3A5A40',        // Forest green
+    users: '#344E41',         // Dark forest green
+    pending: '#F8B945',       // Warm yellow
+    notifications: '#E63946'   // Bright red
+  }
 };
 
 export const SIZES = {
