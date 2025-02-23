@@ -8,6 +8,7 @@ const Detection = require("./models/detection");
 const crypto = require("crypto");
 const Product = require("./models/product");
 const { HfInference } = require("@huggingface/inference");
+const Order = require("./models/order");
 
 const multer = require("multer");
 const path = require("path");
@@ -268,7 +269,6 @@ app.post("/create-payment-intent", async (req, res) => {
 app.get("/products", async (req, res) => {
   try {
     const products = await Product.find();
-    console.log(products);
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products:", error.message);
@@ -354,5 +354,22 @@ app.post("/chatbot", async (req, res) => {
     res.json({ response: response.generated_text });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/orders", async (req, res) => {
+  try {
+    const { userID, products, totalAmount } = req.body;
+
+    const order = new Order({
+      userID,
+      products,
+      totalAmount,
+    });
+    const savedOrder = await order.save();
+    res.status(200).json(savedOrder);
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ error: "Failed to create order" });
   }
 });
