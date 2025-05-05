@@ -227,6 +227,13 @@ const StackNavigator = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="OrderScreen"
+          component={OrderScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack.Navigator>
     );
   };

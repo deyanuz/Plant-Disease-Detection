@@ -146,19 +146,25 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     const userID = req.body.userID;
 
     const imageBuffer = req.file.buffer;
-    const resizedBuffer = await sharp(imageBuffer).resize(224, 224).toBuffer();
+    const resizedBuffer = await sharp(imageBuffer).resize(256, 256).toBuffer();
 
     // Decode the resized image
     const decodedImage = tf.node.decodeImage(resizedBuffer, 3); // Decode to RGB
 
     // Normalize the image and add batch dimension
-    const inputTensor = decodedImage.expandDims(0).toFloat().div(255.0);
+    const inputTensor = decodedImage.expandDims(0).toFloat();
 
     // Step 3: Make predictions
     const CLASS_NAMES = [
       "Cescospora Leaf Spot",
+      "Corn_(maize)___Common_rust_",
+      "Corn_(maize)___Northern_Leaf_Blight",
+      "Corn_(maize)___healthy",
       "Golden Mosaic",
-      "Healthy Leaf",
+      "Healthy Jute Leaf",
+      "healthy rice",
+      "leaf_blast",
+      "rice_hispa",
     ];
 
     const predictions = model.predict(inputTensor);
@@ -222,6 +228,41 @@ app.get("/:userID/detections", async (req, res) => {
     });
 
     return res.json(detectionsWithImages);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get("/:userID/orders", async (req, res) => {
+  try {
+    const { userID } = req.params;
+
+    // Fetch detections filtered by userID
+    const orders = await Order.find({ userID });
+
+    if (!orders || orders.length === 0) {
+      return res.json({ message: "No orders yet" });
+    }
+
+    // Transform orders to include necessary attributes based on schema
+    const ordersWithDetails = orders.map((order) => ({
+      _id: order._id,
+      userID: order.userID,
+      products: order.products.map((product) => ({
+        productId: product.productId,
+        name: product.name,
+        quantity: product.quantity,
+        price: product.price,
+      })),
+      totalAmount: order.totalAmount,
+      status: order.status,
+      orderDate: order.orderDate,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    }));
+
+    return res.json(ordersWithDetails);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: error.message });
