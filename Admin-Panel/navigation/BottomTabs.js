@@ -47,6 +47,7 @@ const BottomTabs = ({ initialRoute = "Home" }) => (
     <Tab.Screen name="Add" component={AddProduct} />
     <Tab.Screen name="Orders" component={ManageOrders} />
     <Tab.Screen name="Transactions" component={TransactionManagement} />
+  
   </Tab.Navigator>
 );
 

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  StatusBar
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -15,6 +14,7 @@ import axios from "axios";
 import IpAddress from "../DeviceConfig";
 import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
 import Card from "../components/Card";
+import ScreenHeader from '../components/ScreenHeader';
 
 const BASE_URL = `http://${IpAddress}:9000`;
 
@@ -105,90 +105,56 @@ const Notifications = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  const renderContent = () => (
-    <>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.menuButton}
-          onPress={() => navigation.openDrawer()}
-        >
-          <Ionicons name="menu-outline" size={28} color={COLORS.white} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        <View style={styles.menuButton} />
-      </View>
-
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.white} />
-        </View>
-      ) : (
-        <FlatList
-          data={notifications}
-          renderItem={renderNotification}
-          keyExtractor={item => item._id}
-          contentContainerStyle={styles.listContainer}
-          refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={onRefresh}
-              colors={[COLORS.primary]}
-            />
-          }
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Ionicons 
-                name="notifications-off-outline" 
-                size={50} 
-                color={COLORS.textLight} 
-              />
-              <Text style={styles.emptyText}>No notifications yet</Text>
-            </View>
-          )}
-        />
-      )}
-    </>
-  );
-
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
-      <SafeAreaView style={styles.safeArea}>
-        {renderContent()}
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader
+        title="Notifications"
+        leftIcon="menu-outline"
+        onLeftPress={() => navigation.openDrawer()}
+      />
+      <View style={styles.content}>
+        {loading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color={COLORS.white} />
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            renderItem={renderNotification}
+            keyExtractor={item => item._id}
+            contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl 
+                refreshing={refreshing} 
+                onRefresh={onRefresh}
+                colors={[COLORS.primary]}
+              />
+            }
+            ListEmptyComponent={() => (
+              <View style={styles.emptyContainer}>
+                <Ionicons 
+                  name="notifications-off-outline" 
+                  size={50} 
+                  color={COLORS.textLight} 
+                />
+                <Text style={styles.emptyText}>No notifications yet</Text>
+              </View>
+            )}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
   },
-  safeArea: {
+  content: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.padding,
-    backgroundColor: COLORS.primary,
-    zIndex: 1,
-  },
-  headerTitle: {
-    ...FONTS.bold,
-    fontSize: SIZES.extraLarge,
-    color: COLORS.white,
-    flex: 1,
-    textAlign: 'center',
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: SIZES.padding,
   },
   listContainer: {
     padding: SIZES.padding,

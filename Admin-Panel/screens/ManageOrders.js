@@ -118,6 +118,12 @@ const ManageOrders = ({ navigation }) => {
           <Text style={styles.totalAmount}>
             Total: ${item.totalAmount?.toFixed(2)}
           </Text>
+          <Text style={styles.productDetails}>Products:</Text>
+          {item.products.map((product) => (
+            <Text key={product._id} style={styles.productText}>
+              {product.name} - Qty: {product.quantity} - Price: ${product.price.toFixed(2)}
+            </Text>
+          ))}
         </View>
       </TouchableOpacity>
     </Card>
@@ -237,7 +243,7 @@ const styles = StyleSheet.create({
   orderId: {
     ...FONTS.bold,
     fontSize: SIZES.medium,
-    color: COLORS.text,
+    color: "#000",
   },
   statusBadge: {
     paddingHorizontal: SIZES.padding,
@@ -254,11 +260,12 @@ const styles = StyleSheet.create({
   },
   customerName: {
     fontSize: SIZES.font,
+    color: "black",
     marginBottom: SIZES.base,
   },
   orderDate: {
     fontSize: SIZES.font,
-    color: COLORS.textLight,
+    color: "#000",
     marginBottom: SIZES.base,
   },
   totalAmount: {
@@ -344,6 +351,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  productDetails: {
+    fontSize: SIZES.font,
+    fontWeight: "bold",
+    marginTop: SIZES.base,
+    color: "black",
+  },
+  productText: {
+    fontSize: SIZES.font,
+    color: "black",
+    marginBottom: SIZES.base,
   },
 });
 

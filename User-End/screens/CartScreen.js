@@ -17,12 +17,14 @@ import { useCart } from "../context/CartContext";
 import { AuthContext } from "../auth/AuthContext";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
+import { useStripe } from '@stripe/stripe-react-native';
 
 const CartScreen = () => {
   const navigation = useNavigation();
   const { cartItems, removeFromCart, updateQuantity, setCartItems } = useCart();
   const { userID } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const calculateItemTotal = (price, quantity) => {
     const numericPrice =
@@ -36,6 +38,107 @@ const CartScreen = () => {
     (total, item) => total + calculateItemTotal(item.price, item.quantity),
     0
   );
+
+  const initializePaymentSheet = async () => {
+    try {
+      console.log('Creating payment intent for amount:', Math.round(totalPrice * 100));
+      
+      // Get payment intent from your backend
+      const response = await axios.post(
+        `http://${IpAddress}:8000/create-payment-intent`,
+        {
+          amount: Math.round(totalPrice * 100), // Convert to cents and ensure it's an integer
+        }
+      );
+
+      console.log('Payment intent response:', response.data);
+
+      if (!response.data.paymentIntent) {
+        throw new Error('No payment intent received from server');
+      }
+
+      const { error } = await initPaymentSheet({
+        merchantDisplayName: "Plant Disease Store",
+        paymentIntentClientSecret: response.data.paymentIntent,
+        allowsDelayedPaymentMethods: false,
+        style: 'automatic'
+      });
+
+      if (error) {
+        console.error('Error initializing payment sheet:', error);
+        Alert.alert('Error', error.message);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error initializing payment sheet:', error);
+      Alert.alert(
+        'Error',
+        'Unable to initialize payment. Please try again later.'
+      );
+      return false;
+    }
+  };
+
+  const handleCheckout = async () => {
+    try {
+      setIsLoading(true);
+
+      // Initialize payment sheet
+      const isPaymentSheetInitialized = await initializePaymentSheet();
+      if (!isPaymentSheetInitialized) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Present payment sheet
+      const { error: paymentError } = await presentPaymentSheet();
+
+      if (paymentError) {
+        console.error('Payment error:', paymentError);
+        Alert.alert('Error', paymentError.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // If payment successful, proceed with order creation
+      const orderProducts = cartItems.map((item) => ({
+        productId: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: parseFloat(item.price),
+      }));
+
+      const orderData = {
+        userID,
+        products: orderProducts,
+        totalAmount: totalPrice,
+        paymentStatus: 'completed'
+      };
+
+      const response = await axios.post(
+        `http://${IpAddress}:8000/orders`,
+        orderData
+      );
+
+      if (response.status === 200) {
+        setCartItems([]); // Clear cart
+        navigation.navigate('OrderConfirmation', { 
+          orderId: response.data._id,
+          totalAmount: totalPrice 
+        });
+      }
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      Alert.alert(
+        "Error",
+        "Failed to process your order. Please try again later."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
@@ -82,39 +185,6 @@ const CartScreen = () => {
     </View>
   );
 
-  const handleCheckout = async () => {
-    try {
-      setIsLoading(true);
-
-      const orderProducts = cartItems.map((item) => ({
-        productId: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: parseFloat(item.price),
-      }));
-
-      const orderData = {
-        userID,
-        products: orderProducts,
-        totalAmount: totalPrice,
-      };
-
-      const response = await axios.post(
-        `http://${IpAddress}:8000/orders`,
-        orderData
-      );
-
-      if (response.status == 200) {
-        // Clear cart and navigate to success screen
-        setCartItems([]);
-      }
-    } catch (error) {
-      console.error("Error creating order:", error);
-      Alert.alert("Error", "Failed to process your order. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -159,7 +229,7 @@ const CartScreen = () => {
               {isLoading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+                <Text style={styles.checkoutText}>Proceed to Payment</Text>
               )}
             </TouchableOpacity>
           </View>

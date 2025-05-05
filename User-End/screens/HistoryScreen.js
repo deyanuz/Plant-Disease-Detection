@@ -199,7 +199,7 @@ const HistoryScreen = () => {
       </View>
       <View style={{ marginHorizontal: 15, marginTop: 10 }}>
         <View>
-          {option == "playing" && (
+          {option == "products" && (
             <View>
               {products.map((item, index) => (
                 <Pressable
@@ -251,5 +251,5 @@ const HistoryScreen = () => {
 };
 
 export default HistoryScreen;
-
 const styles = StyleSheet.create({});
+

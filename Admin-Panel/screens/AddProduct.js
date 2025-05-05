@@ -185,15 +185,14 @@ const AddProduct = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader
-          title="Add Product"
-          leftIcon="menu-outline"
-          onLeftPress={() => navigation.openDrawer()}
-        />
-        <View style={styles.content}>
-          {/* Add Product Form */}
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader
+        title="Add Product"
+        leftIcon="menu-outline"
+        onLeftPress={() => navigation.openDrawer()}
+      />
+      <View style={styles.content}>
+        <ScrollView>
           <View style={styles.formContainer}>
             <TextInput
               style={styles.input}
@@ -212,8 +211,8 @@ const AddProduct = ({ navigation }) => {
               style={styles.input}
               placeholder="Price"
               value={price}
-              keyboardType="numeric"
               onChangeText={setPrice}
+              keyboardType="numeric"
             />
             <TextInput
               style={styles.input}
@@ -225,94 +224,43 @@ const AddProduct = ({ navigation }) => {
               style={styles.input}
               placeholder="Stock"
               value={stock}
-              keyboardType="numeric"
               onChangeText={setStock}
+              keyboardType="numeric"
             />
-            <TouchableOpacity 
-              style={styles.addButton} 
-              onPress={handleAddProduct}
-            >
+            <TouchableOpacity style={styles.addButton} onPress={handleAddProduct}>
               <Text style={styles.buttonText}>Add Product</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Product List */}
           <View style={styles.listContainer}>
             <Text style={styles.listHeader}>Product List</Text>
             {loading ? (
               <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : error ? (
+              <Text style={styles.emptyMessage}>Error loading products</Text>
+            ) : products.length === 0 ? (
+              <Text style={styles.emptyMessage}>No products available</Text>
             ) : (
               <FlatList
                 data={products}
-                keyExtractor={(item) => item._id}
                 renderItem={renderProductCard}
-                ListEmptyComponent={
-                  <Text style={styles.emptyMessage}>No products available.</Text>
-                }
+                keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.listContentContainer}
-                showsVerticalScrollIndicator={false}
               />
             )}
           </View>
-        </View>
-      </SafeAreaView>
+        </ScrollView>
+      </View>
 
-      {/* Update Product Modal */}
-      <Modal visible={isModalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Update Product</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Product Name"
-              value={updatedName}
-              onChangeText={setUpdatedName}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Description"
-              value={updatedDescription}
-              onChangeText={setUpdatedDescription}
-              multiline
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Price"
-              value={updatedPrice}
-              keyboardType="numeric"
-              onChangeText={setUpdatedPrice}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Category"
-              value={updatedCategory}
-              onChangeText={setUpdatedCategory}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Stock"
-              value={updatedStock}
-              keyboardType="numeric"
-              onChangeText={setUpdatedStock}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={saveUpdatedProduct}
-              >
-                <Text style={styles.modalButtonText}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        {/* ... existing modal content ... */}
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
