@@ -26,6 +26,7 @@ import { CartProvider, useCart } from "../context/CartContext";
 
 import Chatbot from "../screens/ChatbotScreen";
 import OrderConfirmation from "../screens/OrderConfirmation";
+import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -275,6 +276,11 @@ const StackNavigator = () => {
         <Stack.Screen
           name="PreFinal"
           component={PreFinalScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ResetPassword"
+          component={ResetPasswordScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
