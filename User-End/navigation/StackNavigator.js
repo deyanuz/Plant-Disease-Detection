@@ -25,6 +25,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { CartProvider, useCart } from "../context/CartContext";
 
 import Chatbot from "../screens/ChatbotScreen";
+import OrderConfirmation from "../screens/OrderConfirmation";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -233,6 +234,11 @@ const StackNavigator = () => {
           options={{
             headerShown: false,
           }}
+        />
+        <Stack.Screen
+          name="OrderConfirmation"
+          component={OrderConfirmation}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     );

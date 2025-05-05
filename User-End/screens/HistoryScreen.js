@@ -208,12 +208,7 @@ const HistoryScreen = () => {
                 ))}
             </View>
           )}
-        </View>
-      </ScrollView>
-      <ScrollView
-        style={{ marginHorizontal: 15, marginTop: 10, marginBottom: 40 }}
-      >
-        <View>
+
           {option == "orders" && (
             <View>
               {orders.length > 0 &&
@@ -348,5 +343,4 @@ const HistoryScreen = () => {
 };
 
 export default HistoryScreen;
-
 const styles = StyleSheet.create({});

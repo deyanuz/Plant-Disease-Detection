@@ -1,21 +1,20 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
-import { COLORS, SIZES } from '../styles/theme';
+import { View, StyleSheet, SafeAreaView, Text } from 'react-native';
+import { COLORS } from '../styles/theme';
 import ScreenHeader from '../components/ScreenHeader';
 
 const DiseaseDatabase = ({ navigation }) => {
-  // Add disease database implementation here
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader
-          title="Disease Database"
-          leftIcon="menu-outline"
-          onLeftPress={() => navigation.openDrawer()}
-        />
-        {/* Rest of your existing DiseaseDatabase content */}
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader
+        title="Disease Database"
+        leftIcon="menu-outline"
+        onLeftPress={() => navigation.openDrawer()}
+      />
+      <View style={styles.content}>
+        <Text style={styles.text}>Disease Database Content Goes Here</Text>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -24,8 +23,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  safeArea: {
+  content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
 

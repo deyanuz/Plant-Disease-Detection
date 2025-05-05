@@ -126,62 +126,88 @@ const AddAdmin = ({ navigation }) => {
         
         <View style={styles.content}>
           <Card style={styles.formCard}>
-            <Text style={styles.formTitle}>Add New Admin</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter admin email"
-              placeholderTextColor={COLORS.textLight}
-              value={newAdminEmail}
-              onChangeText={setNewAdminEmail}
-              keyboardType="email-address"
-            />
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Password"
-                placeholderTextColor={COLORS.textLight}
-                secureTextEntry={!isPasswordVisible}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-              >
-                <Ionicons
-                  name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                  size={20}
-                  color={COLORS.textLight}
-                />
-              </TouchableOpacity>
+            <View style={styles.formHeader}>
+              <Ionicons name="people-circle-outline" size={40} color={COLORS.primary} />
+              <Text style={styles.formTitle}>Add New Admin</Text>
             </View>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Confirm Password"
-                placeholderTextColor={COLORS.textLight}
-                secureTextEntry={!isConfirmPasswordVisible}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
-              >
-                <Ionicons
-                  name={isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                  size={20}
-                  color={COLORS.textLight}
+            
+            <View style={styles.inputContainer}>
+              <View style={styles.inputWrapper}>
+                <Ionicons name="mail-outline" size={20} color={COLORS.primary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter admin email"
+                  placeholderTextColor={COLORS.textLight}
+                  value={newAdminEmail}
+                  onChangeText={setNewAdminEmail}
+                  keyboardType="email-address"
                 />
-              </TouchableOpacity>
+              </View>
             </View>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
+
+            <View style={styles.inputContainer}>
+              <View style={styles.inputWrapper}>
+                <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  placeholderTextColor={COLORS.textLight}
+                  secureTextEntry={!isPasswordVisible}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                >
+                  <Ionicons
+                    name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                    size={20}
+                    color={COLORS.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <View style={styles.inputWrapper}>
+                <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Confirm Password"
+                  placeholderTextColor={COLORS.textLight}
+                  secureTextEntry={!isConfirmPasswordVisible}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+                >
+                  <Ionicons
+                    name={isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                    size={20}
+                    color={COLORS.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.addButton} 
+              onPress={handleAddAdmin}
+            >
+              <Ionicons name="add-circle-outline" size={24} color={COLORS.white} />
               <Text style={styles.addButtonText}>Add Admin</Text>
             </TouchableOpacity>
           </Card>
 
           <View style={styles.listContainer}>
-            <Text style={styles.listTitle}>Admin List</Text>
+            <View style={styles.listHeader}>
+              <Ionicons name="people-outline" size={24} color={COLORS.white} />
+              <Text style={styles.listTitle}>Admin List</Text>
+            </View>
+            
             {loading ? (
               <ActivityIndicator size="large" color={COLORS.white} />
             ) : (
@@ -218,72 +244,87 @@ const styles = StyleSheet.create({
   },
   formCard: {
     backgroundColor: COLORS.white,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
+    borderRadius: SIZES.radius * 2,
+    padding: SIZES.padding * 1.5,
     marginBottom: SIZES.padding,
+    ...SHADOWS.medium,
+  },
+  formHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.padding * 1.5,
   },
   formTitle: {
     ...FONTS.bold,
     fontSize: SIZES.large,
     color: COLORS.primary,
+    marginLeft: SIZES.padding,
+  },
+  inputContainer: {
     marginBottom: SIZES.padding,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  inputIcon: {
+    marginRight: SIZES.base,
   },
   input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: SIZES.radius / 2,
-    padding: SIZES.padding,
-    marginBottom: SIZES.padding,
-    fontSize: SIZES.font,
-    color: COLORS.text,
-    backgroundColor: COLORS.background,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: SIZES.radius / 2,
-    marginBottom: SIZES.padding,
-    backgroundColor: COLORS.background,
-  },
-  passwordInput: {
     flex: 1,
-    padding: SIZES.padding,
+    paddingVertical: SIZES.padding,
     fontSize: SIZES.font,
     color: COLORS.text,
   },
   eyeIcon: {
-    padding: SIZES.padding,
+    padding: SIZES.base,
   },
   addButton: {
     backgroundColor: COLORS.primary,
     padding: SIZES.padding,
     borderRadius: SIZES.radius,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SIZES.padding,
     ...SHADOWS.medium,
   },
   addButtonText: {
     ...FONTS.bold,
     color: COLORS.white,
     fontSize: SIZES.font,
+    marginLeft: SIZES.base,
   },
   listContainer: {
     flex: 1,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.padding,
   },
   listTitle: {
     ...FONTS.bold,
     fontSize: SIZES.large,
     color: COLORS.white,
-    marginBottom: SIZES.padding,
+    marginLeft: SIZES.base,
   },
   adminCard: {
     marginBottom: SIZES.padding,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
+    ...SHADOWS.medium,
   },
   adminContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: SIZES.padding,
   },
   adminInfo: {
     flexDirection: 'row',
@@ -293,7 +334,7 @@ const styles = StyleSheet.create({
   adminEmail: {
     ...FONTS.medium,
     fontSize: SIZES.font,
-    color: "#000",
+    color: COLORS.text,
     marginLeft: SIZES.padding,
   },
   primaryBadge: {
@@ -314,6 +355,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: SIZES.padding * 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: SIZES.radius,
+    marginTop: SIZES.padding,
   },
   emptyMessage: {
     ...FONTS.medium,
