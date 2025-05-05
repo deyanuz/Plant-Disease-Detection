@@ -61,7 +61,7 @@ const DrawerNavigation = () => {
         }}
       />
       <Drawer.Screen 
-        name="Admins" 
+        name="Admin Management" 
         component={AddAdmin}
         options={{
           headerShown: false,
@@ -71,7 +71,7 @@ const DrawerNavigation = () => {
         }}
       />
       <Drawer.Screen 
-        name="History" 
+        name="User History" 
         component={UserHistory}
         options={{
           headerShown: false,

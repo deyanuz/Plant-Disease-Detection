@@ -6,6 +6,7 @@ import {
   ScrollView,
   View,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -32,6 +33,7 @@ const Dashboard = () => {
     pendingOrders: 0,
     notifications: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   const fetchDashboardStats = async () => {
     try {
@@ -39,6 +41,8 @@ const Dashboard = () => {
       setStats(response.data);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -109,26 +113,30 @@ const Dashboard = () => {
           </View>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          <View style={styles.analyticsGrid}>
-            {analyticsCards.map((card, index) => (
-              <Card
-                key={index}
-                style={[styles.analyticsCard, { backgroundColor: card.color }]}
-              >
-                <Ionicons name={card.icon} size={24} color={COLORS.white} />
-                <Text style={styles.cardTitle}>{card.title}</Text>
-                <Text style={styles.cardValue}>{card.value}</Text>
-              </Card>
-            ))}
-          </View>
-        </ScrollView>
+        {loading ? (
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            <View style={styles.analyticsGrid}>
+              {analyticsCards.map((card, index) => (
+                <Card
+                  key={index}
+                  style={[styles.analyticsCard, { backgroundColor: card.color }]}
+                >
+                  <Ionicons name={card.icon} size={24} color={COLORS.white} />
+                  <Text style={styles.cardTitle}>{card.title}</Text>
+                  <Text style={styles.cardValue}>{card.value}</Text>
+                </Card>
+              ))}
+            </View>
+          </ScrollView>
+        )}
       </SafeAreaView>
     </LinearGradient>
   );

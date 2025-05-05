@@ -1,20 +1,20 @@
 import React from "react";
 import { View, Text, StyleSheet, SafeAreaView } from "react-native";
-import { COLORS, SIZES } from '../styles/theme';
+import { COLORS } from '../styles/theme';
 import ScreenHeader from '../components/ScreenHeader';
 
 const UserHistory = ({ navigation }) => {
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader
-          title="User History"
-          leftIcon="menu-outline"
-          onLeftPress={() => navigation.openDrawer()}
-        />
-        <Text style={styles.text}>Manage Products Screen</Text>
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader
+        title="User History"
+        leftIcon="menu-outline"
+        onLeftPress={() => navigation.openDrawer()}
+      />
+      <View style={styles.content}>
+        <Text style={styles.text}>User History Content Goes Here</Text>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -23,8 +23,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  safeArea: {
+  content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
     fontSize: 18,

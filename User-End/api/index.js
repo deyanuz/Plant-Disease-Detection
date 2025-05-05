@@ -9,12 +9,12 @@ const crypto = require("crypto");
 const Product = require("./models/product");
 const { HfInference } = require("@huggingface/inference");
 const Order = require("./models/order");
+const stripe = require('stripe')('sk_test_51P9ieEFzDwwNH06pKTBJMPBXnwuX0DALPs5qwKe1REnFgNlrGfcfYzjGBapYinKyXVqujQkHNPxgyDHN3Q8btgPC00uSAdffOw');
 
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
-const Stripe = require("stripe");
 const jwt = require("jsonwebtoken");
 const {
   createUserWithEmailAndPassword,
@@ -27,10 +27,6 @@ const { default: axios } = require("axios");
 const app = express();
 const port = 8000;
 const hf = new HfInference("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");
-//stripe
-const stripe = Stripe(
-  "sk_test_51P9ieEFzDwwNH06pKTBJMPBXnwuX0DALPs5qwKe1REnFgNlrGfcfYzjGBapYinKyXVqujQkHNPxgyDHN3Q8btgPC00uSAdffOw"
-);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -247,21 +243,35 @@ app.delete("/:userID/detections/delete/:id", async (req, res) => {
   }
 });
 
-// Endpoint to Create Payment Intent
-app.post("/create-payment-intent", async (req, res) => {
+// Create Payment Intent endpoint
+app.post('/create-payment-intent', async (req, res) => {
   try {
-    const { amount } = req.body; // Amount in cents (e.g., 2000 = $20.00)
+    const { amount } = req.body;
+    console.log('Received amount:', amount);
 
+    if (!amount || amount <= 0) {
+      console.error('Invalid amount received:', amount);
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    // Create payment intent with simplified configuration
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency: "usd", // Replace with your currency (e.g., "usd", "inr", etc.)
-      payment_method_types: ["card"],
+      amount: Math.round(amount),
+      currency: 'usd',
+      payment_method_types: ['card'],
     });
 
-    res.status(200).json({ clientSecret: paymentIntent.client_secret });
+    console.log('Payment intent created:', paymentIntent.id);
+
+    res.json({
+      paymentIntent: paymentIntent.client_secret
+    });
   } catch (error) {
-    console.error("Error creating payment intent:", error);
-    res.status(500).json({ error: "Error creating payment intent" });
+    console.error('Error creating payment intent:', error);
+    res.status(500).json({ 
+      error: 'Payment initialization failed',
+      details: error.message 
+    });
   }
 });
 
@@ -359,14 +369,17 @@ app.post("/chatbot", async (req, res) => {
 
 app.post("/orders", async (req, res) => {
   try {
-    const { userID, products, totalAmount } = req.body;
+    const { userID, products, totalAmount, paymentStatus } = req.body;
 
     const order = new Order({
       userID,
       products,
       totalAmount,
+      paymentStatus: paymentStatus || 'pending'
     });
+
     const savedOrder = await order.save();
+    console.log('Order created:', savedOrder._id);
     res.status(200).json(savedOrder);
   } catch (error) {
     console.error("Error creating order:", error);
