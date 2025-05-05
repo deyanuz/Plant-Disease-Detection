@@ -9,7 +9,9 @@ const crypto = require("crypto");
 const Product = require("./models/product");
 const { HfInference } = require("@huggingface/inference");
 const Order = require("./models/order");
-const stripe = require('stripe')('sk_test_51P9ieEFzDwwNH06pKTBJMPBXnwuX0DALPs5qwKe1REnFgNlrGfcfYzjGBapYinKyXVqujQkHNPxgyDHN3Q8btgPC00uSAdffOw');
+const stripe = require("stripe")(
+  "sk_test_51P9ieEFzDwwNH06pKTBJMPBXnwuX0DALPs5qwKe1REnFgNlrGfcfYzjGBapYinKyXVqujQkHNPxgyDHN3Q8btgPC00uSAdffOw"
+);
 
 const multer = require("multer");
 const path = require("path");
@@ -21,6 +23,7 @@ const {
   signInWithEmailAndPassword,
   sendEmailVerification,
   deleteUser,
+  sendPasswordResetEmail,
 } = require("firebase/auth");
 const { default: axios } = require("axios");
 
@@ -66,13 +69,16 @@ app.post("/register", async (req, res) => {
     const user = response.user;
 
     // Send email verification
-
     await sendEmailVerification(user);
     const firebaseUID = response.user.uid;
+
+    // Remove password from userData before saving to MongoDB
+    const { password, ...userDataWithoutPassword } = userData;
+
     const newUser = new User({
       // Setting Firebase UID as MongoDB ID
       _id: firebaseUID,
-      ...userData,
+      ...userDataWithoutPassword,
     });
     try {
       await newUser.save();
@@ -142,19 +148,25 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     const userID = req.body.userID;
 
     const imageBuffer = req.file.buffer;
-    const resizedBuffer = await sharp(imageBuffer).resize(224, 224).toBuffer();
+    const resizedBuffer = await sharp(imageBuffer).resize(256, 256).toBuffer();
 
     // Decode the resized image
     const decodedImage = tf.node.decodeImage(resizedBuffer, 3); // Decode to RGB
 
     // Normalize the image and add batch dimension
-    const inputTensor = decodedImage.expandDims(0).toFloat().div(255.0);
+    const inputTensor = decodedImage.expandDims(0).toFloat();
 
     // Step 3: Make predictions
     const CLASS_NAMES = [
       "Cescospora Leaf Spot",
+      "Corn_(maize)___Common_rust_",
+      "Corn_(maize)___Northern_Leaf_Blight",
+      "Corn_(maize)___healthy",
       "Golden Mosaic",
-      "Healthy Leaf",
+      "Healthy Jute Leaf",
+      "healthy rice",
+      "leaf_blast",
+      "rice_hispa",
     ];
 
     const predictions = model.predict(inputTensor);
@@ -224,6 +236,41 @@ app.get("/:userID/detections", async (req, res) => {
   }
 });
 
+app.get("/:userID/orders", async (req, res) => {
+  try {
+    const { userID } = req.params;
+
+    // Fetch detections filtered by userID
+    const orders = await Order.find({ userID });
+
+    if (!orders || orders.length === 0) {
+      return res.json({ message: "No orders yet" });
+    }
+
+    // Transform orders to include necessary attributes based on schema
+    const ordersWithDetails = orders.map((order) => ({
+      _id: order._id,
+      userID: order.userID,
+      products: order.products.map((product) => ({
+        productId: product.productId,
+        name: product.name,
+        quantity: product.quantity,
+        price: product.price,
+      })),
+      totalAmount: order.totalAmount,
+      status: order.status,
+      orderDate: order.orderDate,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    }));
+
+    return res.json(ordersWithDetails);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 //delete history
 app.delete("/:userID/detections/delete/:id", async (req, res) => {
   try {
@@ -244,33 +291,33 @@ app.delete("/:userID/detections/delete/:id", async (req, res) => {
 });
 
 // Create Payment Intent endpoint
-app.post('/create-payment-intent', async (req, res) => {
+app.post("/create-payment-intent", async (req, res) => {
   try {
     const { amount } = req.body;
-    console.log('Received amount:', amount);
+    console.log("Received amount:", amount);
 
     if (!amount || amount <= 0) {
-      console.error('Invalid amount received:', amount);
-      return res.status(400).json({ error: 'Invalid amount' });
+      console.error("Invalid amount received:", amount);
+      return res.status(400).json({ error: "Invalid amount" });
     }
 
     // Create payment intent with simplified configuration
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount),
-      currency: 'usd',
-      payment_method_types: ['card'],
+      currency: "usd",
+      payment_method_types: ["card"],
     });
 
-    console.log('Payment intent created:', paymentIntent.id);
+    console.log("Payment intent created:", paymentIntent.id);
 
     res.json({
-      paymentIntent: paymentIntent.client_secret
+      paymentIntent: paymentIntent.client_secret,
     });
   } catch (error) {
-    console.error('Error creating payment intent:', error);
-    res.status(500).json({ 
-      error: 'Payment initialization failed',
-      details: error.message 
+    console.error("Error creating payment intent:", error);
+    res.status(500).json({
+      error: "Payment initialization failed",
+      details: error.message,
     });
   }
 });
@@ -375,14 +422,36 @@ app.post("/orders", async (req, res) => {
       userID,
       products,
       totalAmount,
-      paymentStatus: paymentStatus || 'pending'
+      paymentStatus: paymentStatus || "pending",
     });
 
     const savedOrder = await order.save();
-    console.log('Order created:', savedOrder._id);
+    console.log("Order created:", savedOrder._id);
     res.status(200).json(savedOrder);
   } catch (error) {
     console.error("Error creating order:", error);
     res.status(500).json({ error: "Failed to create order" });
+  }
+});
+
+// Reset password endpoint
+app.post("/reset-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    await sendPasswordResetEmail(FIREBASE_AUTH, email);
+
+    return res
+      .status(200)
+      .json({ message: "Password reset email sent successfully" });
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to send password reset email" });
   }
 });

@@ -147,6 +147,24 @@ const LoginScreen = () => {
               </View>
             </View>
             <Pressable
+              onPress={() => navigation.navigate("ResetPassword")}
+              style={{
+                alignSelf: "flex-end",
+                marginRight: 20,
+                marginTop: 10,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#9d23bc",
+                  fontSize: 14,
+                  fontWeight: "500",
+                }}
+              >
+                Forgot Password?
+              </Text>
+            </Pressable>
+            <Pressable
               onPress={signIn}
               style={{
                 width: 200,
