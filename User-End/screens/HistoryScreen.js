@@ -1,7 +1,15 @@
-import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
 import { AuthContext } from "../auth/AuthContext";
@@ -10,15 +18,16 @@ const HistoryScreen = () => {
   const [option, setOption] = useState("detections");
   const { userID } = useContext(AuthContext);
   const route = useRoute();
+  const navigation = useNavigation();
   const [detections, setDetections] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     fetchDetections();
   }, []);
   useEffect(() => {
-    fetchProducts();
-  }, [products]);
+    fetchOrders();
+  }, []);
   const fetchDetections = async () => {
     try {
       const response = await axios.get(
@@ -30,8 +39,12 @@ const HistoryScreen = () => {
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchOrders = async () => {
     try {
+      const response = await axios.get(
+        `http://${IpAddress}:8000/${userID}/orders`
+      );
+      setOrders(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -51,8 +64,6 @@ const HistoryScreen = () => {
       alert("An error occurred while deleting history.");
     }
   };
-
-  console.log(detections);
   return (
     <SafeAreaView>
       <View
@@ -94,27 +105,29 @@ const HistoryScreen = () => {
             paddingTop: 0,
             width: "50%",
             alignItems: "center",
-            borderBottomWidth: option == "products" ? 2 : 0,
-            borderLeftWidth: option == "products" ? 1 : 0,
+            borderBottomWidth: option == "orders" ? 2 : 0,
+            borderLeftWidth: option == "orders" ? 1 : 0,
             borderLeftColor: "#9d23bc80",
             borderBottomColor: "#9d23bc",
             gap: 15,
           }}
         >
-          <Pressable onPress={() => setOption("products")}>
+          <Pressable onPress={() => setOption("orders")}>
             <Text
               style={{
-                color: option == "products" ? "#9d23bc" : "gray",
+                color: option == "orders" ? "#9d23bc" : "gray",
                 fontWeight: "500",
               }}
             >
-              Products ({products.length})
+              Orders ({orders.length})
             </Text>
           </Pressable>
         </View>
       </View>
 
-      <View style={{ marginTop: 10, marginHorizontal: 15 }}>
+      <ScrollView
+        style={{ marginTop: 10, marginHorizontal: 15, marginBottom: 40 }}
+      >
         <View>
           {option == "detections" && (
             <View>
@@ -195,61 +208,139 @@ const HistoryScreen = () => {
                 ))}
             </View>
           )}
-        </View>
-      </View>
-      <View style={{ marginHorizontal: 15, marginTop: 10 }}>
-        <View>
-          {option == "products" && (
+
+          {option == "orders" && (
             <View>
-              {products.map((item, index) => (
-                <Pressable
-                  key={index}
-                  style={{
-                    marginVertical: 10,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <View>
-                    <Image
-                      style={{
-                        width: 60,
-                        height: 60,
-                        resizeMode: "contain",
-                        borderRadius: 30,
-                      }}
-                      source={{ uri: item?.image }}
-                    />
-                  </View>
-                  <View>
-                    <Text>
-                      {item?.firstName} {item?.lastName}
-                    </Text>
-                    <View
-                      style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 5,
-                        marginTop: 10,
-                        borderRadius: 20,
-                        borderColor: "#fcf005",
-                        borderWidth: 1,
-                        alignSelf: "flex-start",
-                      }}
-                    >
-                      <Text>INTERMIDEATE</Text>
+              {orders.length > 0 &&
+                orders?.map((item, index) => (
+                  <Pressable
+                    key={index}
+                    style={{
+                      padding: 15,
+                      backgroundColor: "white",
+                      marginVertical: 8,
+                      borderRadius: 12,
+                      elevation: 3,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 13,
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 12, color: "#666" }}>
+                            ORDER ID
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: "500",
+                              marginBottom: 8,
+                            }}
+                          >
+                            {item?._id}
+                          </Text>
+
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <View>
+                              <Text style={{ fontSize: 12, color: "#666" }}>
+                                STATUS
+                              </Text>
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: "500",
+                                  color:
+                                    item?.status === "completed"
+                                      ? "#4CAF50"
+                                      : "#FFA000",
+                                }}
+                              >
+                                {item?.status}
+                              </Text>
+                            </View>
+
+                            <View>
+                              <Text style={{ fontSize: 12, color: "#666" }}>
+                                TOTAL
+                              </Text>
+                              <Text
+                                style={{
+                                  fontSize: 16,
+                                  fontWeight: "600",
+                                  color: "#c518f0",
+                                }}
+                              >
+                                ${item?.totalAmount}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+
+                      <View
+                        style={{
+                          height: 1,
+                          backgroundColor: "#f0f0f0",
+                          marginVertical: 12,
+                        }}
+                      />
+
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        <Pressable
+                          style={{
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
+                            borderRadius: 8,
+                            backgroundColor: "#c518f0",
+                            minWidth: 120,
+                          }}
+                          onPress={() =>
+                            navigation.navigate("OrderScreen", { order: item })
+                          }
+                        >
+                          <Text
+                            style={{
+                              textAlign: "center",
+                              color: "white",
+                              fontSize: 14,
+                              fontWeight: "500",
+                            }}
+                          >
+                            View Details
+                          </Text>
+                        </Pressable>
+                      </View>
                     </View>
-                  </View>
-                </Pressable>
-              ))}
+                  </Pressable>
+                ))}
             </View>
           )}
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default HistoryScreen;
 const styles = StyleSheet.create({});
-

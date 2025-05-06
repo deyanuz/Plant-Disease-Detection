@@ -25,7 +25,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { CartProvider, useCart } from "../context/CartContext";
 
 import Chatbot from "../screens/ChatbotScreen";
-import OrderConfirmation from '../screens/OrderConfirmation';
+import OrderConfirmation from "../screens/OrderConfirmation";
+import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -228,8 +229,15 @@ const StackNavigator = () => {
             headerShown: false,
           }}
         />
-        <Stack.Screen 
-          name="OrderConfirmation" 
+        <Stack.Screen
+          name="OrderScreen"
+          component={OrderScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="OrderConfirmation"
           component={OrderConfirmation}
           options={{ headerShown: false }}
         />
@@ -268,6 +276,11 @@ const StackNavigator = () => {
         <Stack.Screen
           name="PreFinal"
           component={PreFinalScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ResetPassword"
+          component={ResetPasswordScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
