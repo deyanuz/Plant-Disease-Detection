@@ -46,6 +46,12 @@ let model;
   model = await tf.loadGraphModel(modelPath);
   console.log("Model loaded successfully!");
 })();
+let leafClf;
+(async function loadLeafClf() {
+  const modelPath = "file://./leafClf/model.json"; // Path to model.json
+  leafClf = await tf.loadGraphModel(modelPath);
+  console.log("Leaf Clf Model loaded successfully!");
+})();
 
 mongoose
   .connect(
@@ -141,22 +147,60 @@ app.post("/login", async (req, res) => {
 
 //endpoint for disease detection
 app.post("/detect", upload.single("image"), async (req, res) => {
+  let decodedImageLeaf,
+    inputTensorLeaf,
+    decodedImageDisease,
+    inputTensorDisease;
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image file uploaded" });
     }
     const userID = req.body.userID;
-
+    if (!userID) {
+      return res.status(400).json({ error: "userID is required" });
+    }
     const imageBuffer = req.file.buffer;
-    const resizedBuffer = await sharp(imageBuffer).resize(256, 256).toBuffer();
 
-    // Decode the resized image
-    const decodedImage = tf.node.decodeImage(resizedBuffer, 3); // Decode to RGB
+    // 1. Leaf classifier: resize to 224x224
+    const resizedBufferLeaf = await sharp(imageBuffer)
+      .resize(224, 224)
+      .toBuffer();
+    decodedImageLeaf = tf.node.decodeImage(resizedBufferLeaf, 3);
+    inputTensorLeaf = decodedImageLeaf.expandDims(0).toFloat();
 
-    // Normalize the image and add batch dimension
-    const inputTensor = decodedImage.expandDims(0).toFloat();
+    // Check if models are loaded
+    if (!leafClf || !model) {
+      return res.status(503).json({ error: "Models not loaded yet" });
+    }
 
-    // Step 3: Make predictions
+    // 2. Run leaf classifier
+    const CLASS_NAMES_LEAF_CLF = ["Leaf", "Not Leaf"];
+    const predictions_leaf_clf = leafClf.predict(inputTensorLeaf);
+    const outputData_leaf_clf = predictions_leaf_clf.arraySync()[0];
+    const maxIndex_leaf_clf = outputData_leaf_clf.indexOf(
+      Math.max(...outputData_leaf_clf)
+    );
+    const confidence_leaf_clf = parseFloat(
+      (outputData_leaf_clf[maxIndex_leaf_clf] * 100).toFixed(3)
+    );
+    const predictedClass_leaf_clf = CLASS_NAMES_LEAF_CLF[maxIndex_leaf_clf];
+    console.log(predictedClass_leaf_clf);
+
+    if (predictedClass_leaf_clf !== "Leaf") {
+      return res.status(201).json({
+        predictedClass: "Not a leaf",
+        confidence: confidence_leaf_clf,
+      });
+    }
+
+    // 3. Disease classifier: resize to 256x256
+    const resizedBufferDisease = await sharp(imageBuffer)
+      .resize(256, 256)
+      .toBuffer();
+    decodedImageDisease = tf.node.decodeImage(resizedBufferDisease, 3);
+    inputTensorDisease = decodedImageDisease.expandDims(0).toFloat();
+
+    // 4. Run disease classifier
     const CLASS_NAMES = [
       "Cescospora Leaf Spot",
       "Corn_(maize)___Common_rust_",
@@ -168,30 +212,26 @@ app.post("/detect", upload.single("image"), async (req, res) => {
       "leaf_blast",
       "rice_hispa",
     ];
-
-    const predictions = model.predict(inputTensor);
-
-    // Step 4: Get class with the highest confidence
+    const predictions = model.predict(inputTensorDisease);
     const outputData = predictions.arraySync()[0];
     console.log(outputData);
     const maxIndex = outputData.indexOf(Math.max(...outputData));
     const predictedClass = CLASS_NAMES[maxIndex];
     const confidence = parseFloat((outputData[maxIndex] * 100).toFixed(3));
 
-    //save prediction
+    // Save prediction
     try {
       const detection = new Detection({
         userID: userID,
-        image: resizedBuffer,
+        image: resizedBufferDisease,
         predictionClass: predictedClass,
         confidence: confidence,
       });
-
       const savedDetection = await detection.save();
       console.log("Detection saved:", savedDetection);
     } catch (error) {
       console.error("Error saving detection:", error);
-      return res.status(500).json({ error: "Server error" });
+      return res.status(500).json({ error: "Failed to save detection" });
     }
 
     // Return the class name and confidence
@@ -200,6 +240,12 @@ app.post("/detect", upload.single("image"), async (req, res) => {
   } catch (error) {
     console.error("Error during file upload:", error);
     res.status(500).json({ error: "Server error" });
+  } finally {
+    // Clean up tensors to prevent memory leaks
+    if (decodedImageLeaf) decodedImageLeaf.dispose();
+    if (inputTensorLeaf) inputTensorLeaf.dispose();
+    if (decodedImageDisease) decodedImageDisease.dispose();
+    if (inputTensorDisease) inputTensorDisease.dispose();
   }
 });
 

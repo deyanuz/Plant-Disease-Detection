@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,12 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useCart } from "../context/CartContext";
 
 const ProductDetailsScreen = ({ route }) => {
   const { product } = route.params;
   const navigation = useNavigation();
+  const { addToCart } = useCart();
   const [rating, setRating] = useState(4); // Default rating
 
   const relatedProducts = [
@@ -80,17 +82,19 @@ const ProductDetailsScreen = ({ route }) => {
           style={styles.addToBasketButton}
           onPress={() => {
             const cartItem = {
-              id: product.id,
+              id: product._id || product.id,
               name: product.name,
               price: product.price,
               image: product.image,
               quantity: 1,
             };
-            console.log("Navigating to Cart with:", cartItem); // Debug log
-            navigation.navigate("Cart", { cartItems: [cartItem] });
+            addToCart(cartItem);
+            // Optionally show a success message or navigate to cart
+            console.log("Added to cart:", cartItem);
+            navigation.navigate("Main");
           }}
         >
-          <Text style={styles.addToBasketText}>Add to Basket</Text>
+          <Text style={styles.addToBasketText}>Add to Cart</Text>
         </TouchableOpacity>
       </View>
 
