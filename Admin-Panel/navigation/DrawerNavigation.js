@@ -8,9 +8,8 @@ import { AuthContext } from "../auth/AuthContext";
 // Import screens
 import AddAdmin from "../screens/AddAdmin";
 import ManageProducts from "../screens/ManageProducts";
-import UserHistory from "../screens/UserHistory";
+import UserList from "../screens/UserList";
 import Notifications from "../screens/Notifications";
-import DiseaseDatabase from "../screens/DiseaseDatabase";
 import BottomTabs from "./BottomTabs";
 import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
 
@@ -71,12 +70,12 @@ const DrawerNavigation = () => {
         }}
       />
       <Drawer.Screen 
-        name="User History" 
-        component={UserHistory}
+        name="User List" 
+        component={UserList}
         options={{
           headerShown: false,
           drawerIcon: ({color}) => (
-            <Ionicons name="time-outline" size={22} color={color} />
+            <Ionicons name="people-outline" size={22} color={color} />
           ),
         }}
       />
@@ -87,16 +86,6 @@ const DrawerNavigation = () => {
           headerShown: false,
           drawerIcon: ({color}) => (
             <Ionicons name="notifications-outline" size={22} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen 
-        name="Disease DB" 
-        component={DiseaseDatabase}
-        options={{
-          headerShown: false,
-          drawerIcon: ({color}) => (
-            <Ionicons name="leaf-outline" size={22} color={color} />
           ),
         }}
       />

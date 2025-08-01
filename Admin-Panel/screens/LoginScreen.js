@@ -29,11 +29,16 @@ const LoginScreen = () => {
     }
 
     try {
+      // Format email properly (lowercase and trim)
+      const formattedEmail = email.toLowerCase().trim();
+      
+      console.log("Attempting login with:", { email: formattedEmail, password: password ? "***" : "empty" });
+      
       const response = await axios.post(
         `http://${IpAddress}:9000/admin/login`,
         {
-          email,
-          password,
+          email: formattedEmail,
+          password: password.trim(),
         }
       );
 
@@ -42,10 +47,20 @@ const LoginScreen = () => {
       setToken(token);
       Alert.alert("Success", "Login successful!");
     } catch (error) {
-      console.error(error);
-      const message =
-        error.response?.data?.message || "Login failed. Please try again.";
-      Alert.alert("Error", message);
+      console.error("Login error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      
+      let errorMessage = "Login failed. Please try again.";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
+      Alert.alert("Error", errorMessage);
     }
   };
 
