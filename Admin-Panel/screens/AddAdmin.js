@@ -58,8 +58,8 @@ const AddAdmin = ({ navigation }) => {
     }
 
     try {
-      await axios.post(`${BASE_URL}/admins`, {
-        email: newAdminEmail,
+      const response = await axios.post(`${BASE_URL}/admins`, {
+        email: newAdminEmail.trim(),
         password,
       });
       Alert.alert("Success", "Admin added successfully!");
@@ -69,7 +69,8 @@ const AddAdmin = ({ navigation }) => {
       fetchAdmins();
     } catch (error) {
       console.error("Error adding admin:", error);
-      Alert.alert("Error", "Failed to add admin. Please try again.");
+      const errorMessage = error.response?.data?.error || "Failed to add admin. Please try again.";
+      Alert.alert("Error", errorMessage);
     }
   };
 
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: COLORS.black,
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     borderWidth: 1,
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: SIZES.padding,
     fontSize: SIZES.font,
-    color: COLORS.text,
+    color: COLORS.black,
   },
   eyeIcon: {
     padding: SIZES.base,
@@ -325,16 +326,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: SIZES.padding,
+    
   },
   adminInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    
   },
   adminEmail: {
     ...FONTS.medium,
     fontSize: SIZES.font,
-    color: COLORS.text,
+    color: COLORS.black,
     marginLeft: SIZES.padding,
   },
   primaryBadge: {
