@@ -3,8 +3,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Dashboard from "../screens/Dashboard";
 import AddProduct from "../screens/AddProduct";
+import ProductList from "../screens/ProductList";
 import ManageOrders from "../screens/ManageOrders";
-import TransactionManagement from "../screens/TransactionManagement";
 import { COLORS, SIZES, FONTS, SHADOWS } from '../styles/theme';
 
 const Tab = createBottomTabNavigator();
@@ -37,16 +37,16 @@ const BottomTabs = ({ initialRoute = "Home" }) => (
         let iconName;
         if (route.name === "Home") iconName = "home-outline";
         else if (route.name === "Add") iconName = "add-circle-outline";
+        else if (route.name === "Products") iconName = "cube-outline";
         else if (route.name === "Orders") iconName = "cart-outline";
-        else if (route.name === "Transactions") iconName = "cash-outline";
         return <Ionicons name={iconName} size={size} color={color} />;
       },
     })}
   >
     <Tab.Screen name="Home" component={Dashboard} />
     <Tab.Screen name="Add" component={AddProduct} />
+    <Tab.Screen name="Products" component={ProductList} />
     <Tab.Screen name="Orders" component={ManageOrders} />
-    <Tab.Screen name="Transactions" component={TransactionManagement} />
   
   </Tab.Navigator>
 );

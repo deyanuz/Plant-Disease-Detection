@@ -1,10 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const Product = require("./models/product");
 const Admin = require("./models/admins");
 const Order = require("./models/order");
 const Notification = require("./models/notification");
+const User = require("./models/user");
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -16,6 +20,44 @@ app.use(express.json());
 app.use(cors());
 const router = express.Router();
 const JWT_SECRET = "af8e80f3ea01d3bfe178454c3ffa0e38f93cd977a1cfc66f0e1535a36d201384"; // Your secret key
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(uploadsDir));
+
+// Order status constants
+const ORDER_STATUSES = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
 // Connect to MongoDB
 mongoose
@@ -38,6 +80,28 @@ const authenticateToken = (req, res, next) => {
   }
 };
 // Routes
+
+// Upload Image
+app.post("/upload-image", upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No image file provided" });
+    }
+
+    // Create the image URL
+    const imageUrl = `http://${req.get('host')}/uploads/${req.file.filename}`;
+    
+    console.log("Image uploaded successfully:", imageUrl);
+    res.status(200).json({ 
+      success: true, 
+      imageUrl: imageUrl,
+      filename: req.file.filename 
+    });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    res.status(500).json({ error: "Failed to upload image" });
+  }
+});
 
 // Create a Product
 app.post("/products", async (req, res) => {
@@ -176,9 +240,10 @@ app.delete("/products/:id", async (req, res) => {
 // Get All Admins
 app.get("/admins", async (req, res) => {
   try {
-    const admins = await Admin.find();
+    const admins = await Admin.find().select('-password');
     res.status(200).json(admins);
   } catch (error) {
+    console.error("Error fetching admins:", error);
     res.status(500).json({ error: "Failed to fetch admins" });
   }
 });
@@ -187,23 +252,58 @@ app.post("/admins", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password || password.length < 6) {
-      return res.status(400).json({ error: "Email and password are required. Password must be at least 6 characters long." });
+    console.log("Received admin creation request:", { email, password: password ? "***" : "undefined" });
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required." });
     }
 
-    const existingAdmin = await Admin.findOne({ email });
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters long." });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email address." });
+    }
+
+    const existingAdmin = await Admin.findOne({ email: email.toLowerCase() });
     if (existingAdmin) {
       return res.status(400).json({ error: "Admin with this email already exists" });
     }
 
     const isPrimary = (await Admin.countDocuments()) === 0; // First admin is primary
-    const newAdmin = new Admin({ email, password, isPrimary });
+    const newAdmin = new Admin({ 
+      email: email.toLowerCase().trim(), 
+      password, 
+      isPrimary 
+    });
 
+    console.log("Attempting to save admin:", { email: newAdmin.email, isPrimary: newAdmin.isPrimary });
     await newAdmin.save();
-    res.status(201).json(newAdmin);
+    
+    // Don't send password in response
+    const adminResponse = {
+      _id: newAdmin._id,
+      email: newAdmin.email,
+      isPrimary: newAdmin.isPrimary,
+      createdAt: newAdmin.createdAt
+    };
+    
+    console.log("Admin created successfully:", adminResponse);
+    res.status(201).json(adminResponse);
   } catch (error) {
     console.error("Error creating admin:", error);
-    res.status(500).json({ error: "Failed to create admin" });
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: "Validation error", 
+        details: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    
+    res.status(500).json({ error: "Failed to create admin", details: error.message });
   }
 });
 
@@ -239,8 +339,9 @@ app.post("/admin/login", async (req, res) => {
       return res.status(404).json({ message: "Admin not found" });
     }
 
-    // Directly compare the plain-text password
-    if (password !== admin.password) {
+    // Compare password using bcrypt
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
@@ -316,27 +417,51 @@ app.get("/dashboard/stats", async (req, res) => {
       totalAdmins,
       totalProducts,
       totalOrders,
+      totalUsers,
       pendingOrders,
       notifications
     ] = await Promise.all([
       Admin.countDocuments(),
       Product.countDocuments(),
       Order.countDocuments(),
+      User.countDocuments(),
       Order.countDocuments({ status: 'Pending' }),
-      // Add your notifications count logic here
+      Notification.countDocuments({ forAdmin: true, isRead: false })
     ]);
 
     res.json({
       totalAdmins,
       totalProducts,
       totalOrders,
-      totalUsers: 0, // Add your user count logic
+      totalUsers,
       pendingOrders,
-      notifications: 0, // Add your notifications count logic
+      notifications
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     res.status(500).json({ error: "Failed to fetch dashboard stats" });
+  }
+});
+
+// Get all users
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.find({})
+      .select('-password') // Exclude password from response
+      .sort({ createdAt: -1 });
+    
+    res.json({ 
+      success: true, 
+      users: users,
+      total: users.length 
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch users",
+      error: error.message 
+    });
   }
 });
 
