@@ -198,12 +198,16 @@ const StackNavigator = () => {
             headerShown: false,
           }}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={{ headerShown: false }}
+        /> */}
+        <Stack.Screen
+          name="User"
+          component={UserScreen}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen name="User" component={UserScreen} options={{}} />
         <Stack.Screen
           name="ProductDetails"
           component={ProductDetailsScreen}

@@ -17,10 +17,11 @@ import { useCart } from "../context/CartContext";
 import { AuthContext } from "../auth/AuthContext";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
-import { useStripe } from '@stripe/stripe-react-native';
+import { useStripe } from "@stripe/stripe-react-native";
 
 const CartScreen = () => {
   const navigation = useNavigation();
+  const route = navigation.getState().routes[navigation.getState().index];
   const { cartItems, removeFromCart, updateQuantity, setCartItems } = useCart();
   const { userID } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,8 +42,11 @@ const CartScreen = () => {
 
   const initializePaymentSheet = async () => {
     try {
-      console.log('Creating payment intent for amount:', Math.round(totalPrice * 100));
-      
+      console.log(
+        "Creating payment intent for amount:",
+        Math.round(totalPrice * 100)
+      );
+
       // Get payment intent from your backend
       const response = await axios.post(
         `http://${IpAddress}:8000/create-payment-intent`,
@@ -51,31 +55,31 @@ const CartScreen = () => {
         }
       );
 
-      console.log('Payment intent response:', response.data);
+      console.log("Payment intent response:", response.data);
 
       if (!response.data.paymentIntent) {
-        throw new Error('No payment intent received from server');
+        throw new Error("No payment intent received from server");
       }
 
       const { error } = await initPaymentSheet({
         merchantDisplayName: "Plant Disease Store",
         paymentIntentClientSecret: response.data.paymentIntent,
         allowsDelayedPaymentMethods: false,
-        style: 'automatic'
+        style: "automatic",
       });
 
       if (error) {
-        console.error('Error initializing payment sheet:', error);
-        Alert.alert('Error', error.message);
+        console.error("Error initializing payment sheet:", error);
+        Alert.alert("Error", error.message);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error initializing payment sheet:', error);
+      console.error("Error initializing payment sheet:", error);
       Alert.alert(
-        'Error',
-        'Unable to initialize payment. Please try again later.'
+        "Error",
+        "Unable to initialize payment. Please try again later."
       );
       return false;
     }
@@ -96,8 +100,8 @@ const CartScreen = () => {
       const { error: paymentError } = await presentPaymentSheet();
 
       if (paymentError) {
-        console.error('Payment error:', paymentError);
-        Alert.alert('Error', paymentError.message);
+        console.error("Payment error:", paymentError);
+        Alert.alert("Error", paymentError.message);
         setIsLoading(false);
         return;
       }
@@ -114,7 +118,7 @@ const CartScreen = () => {
         userID,
         products: orderProducts,
         totalAmount: totalPrice,
-        paymentStatus: 'completed'
+        paymentStatus: "completed",
       };
 
       const response = await axios.post(
@@ -124,9 +128,9 @@ const CartScreen = () => {
 
       if (response.status === 200) {
         setCartItems([]); // Clear cart
-        navigation.navigate('OrderConfirmation', { 
+        navigation.navigate("OrderConfirmation", {
           orderId: response.data._id,
-          totalAmount: totalPrice 
+          totalAmount: totalPrice,
         });
       }
     } catch (error) {
@@ -184,12 +188,10 @@ const CartScreen = () => {
       </View>
     </View>
   );
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <View style={{ width: 24 }} />
           <Text style={styles.headerTitle}>Shopping Cart</Text>
           <View style={{ width: 24 }} />
         </View>
@@ -260,6 +262,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#013220",
     textAlign: "center",
+  },
+  backButton: {
+    position: "absolute",
+    left: 0,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#FFF",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   cartItem: {
     flexDirection: "row",
