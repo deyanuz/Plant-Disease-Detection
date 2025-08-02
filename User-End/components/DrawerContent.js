@@ -61,7 +61,8 @@ const DrawerContent = (props) => {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         <View style={styles.drawerItems}>
-          <View style={styles.menuContainer}>
+          {/* for future use, Fille this later */}
+          {/* <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => {
@@ -95,7 +96,7 @@ const DrawerContent = (props) => {
                 <Text style={styles.menuItemText}>History</Text>
               </View>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           <TouchableOpacity
             onPress={signOutAndClearAuthToken}

@@ -5,6 +5,7 @@ import Icon from "react-native-vector-icons/Entypo";
 
 const OrderScreen = ({ route, navigation }) => {
   const { order } = route.params;
+  console.log(order);
 
   return (
     <SafeAreaView style={styles.container}>
