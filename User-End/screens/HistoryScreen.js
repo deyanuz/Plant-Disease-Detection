@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
@@ -45,6 +45,7 @@ const HistoryScreen = () => {
         `http://${IpAddress}:8000/${userID}/orders`
       );
       setOrders(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -65,70 +66,41 @@ const HistoryScreen = () => {
     }
   };
   return (
-    <SafeAreaView>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          alignItems: "center",
-        }}
-      >
+    <SafeAreaView style={styles.container}>
+      <View style={styles.tabContainer}>
         <View
-          style={{
-            marginTop: 5,
-            padding: 10,
-            paddingTop: 0,
-            width: "50%",
-            alignItems: "center",
-            borderBottomWidth: option == "detections" ? 2 : 0,
-            borderRightWidth: option == "detections" ? 1 : 0,
-            borderRightColor: "#9d23bc80",
-            borderBottomColor: "#9d23bc",
-            gap: 15,
-          }}
+          style={[styles.tabItem, option === "detections" && styles.activeTab]}
         >
           <Pressable onPress={() => setOption("detections")}>
             <Text
-              style={{
-                color: option == "detections" ? "#9d23bc" : "gray",
-                fontWeight: "500",
-              }}
+              style={[
+                styles.tabText,
+                option === "detections" && styles.activeTabText,
+              ]}
             >
               Detections ({detections.length ? detections.length : 0})
             </Text>
           </Pressable>
         </View>
-        <View
-          style={{
-            marginTop: 5,
-            padding: 10,
-            paddingTop: 0,
-            width: "50%",
-            alignItems: "center",
-            borderBottomWidth: option == "orders" ? 2 : 0,
-            borderLeftWidth: option == "orders" ? 1 : 0,
-            borderLeftColor: "#9d23bc80",
-            borderBottomColor: "#9d23bc",
-            gap: 15,
-          }}
-        >
+        <View style={[styles.tabItem, option === "orders" && styles.activeTab]}>
           <Pressable onPress={() => setOption("orders")}>
             <Text
-              style={{
-                color: option == "orders" ? "#9d23bc" : "gray",
-                fontWeight: "500",
-              }}
+              style={[
+                styles.tabText,
+                option === "orders" && styles.activeTabText,
+              ]}
             >
-              Orders ({orders.length})
+              Orders ({orders.length ? orders.length : 0})
             </Text>
           </Pressable>
         </View>
       </View>
 
       <ScrollView
-        style={{ marginTop: 10, marginHorizontal: 15, marginBottom: 40 }}
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
       >
-        <View>
+        <View style={styles.contentContainer}>
           {option == "detections" && (
             <View>
               {detections.length > 0 &&
@@ -213,120 +185,47 @@ const HistoryScreen = () => {
             <View>
               {orders.length > 0 &&
                 orders?.map((item, index) => (
-                  <Pressable
-                    key={index}
-                    style={{
-                      padding: 15,
-                      backgroundColor: "white",
-                      marginVertical: 8,
-                      borderRadius: 12,
-                      elevation: 3,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 13,
-                        }}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 12, color: "#666" }}>
-                            ORDER ID
-                          </Text>
+                  <Pressable key={index} style={styles.orderCard}>
+                    <View style={styles.orderContent}>
+                      <View style={styles.orderHeader}>
+                        <View style={styles.orderInfo}>
+                          <Text style={styles.orderLabel}>ORDER ID</Text>
+                          <Text style={styles.orderId}>{item?._id}</Text>
+                        </View>
+                        <View style={styles.orderStatus}>
+                          <Text style={styles.statusLabel}>STATUS</Text>
                           <Text
-                            style={{
-                              fontSize: 14,
-                              fontWeight: "500",
-                              marginBottom: 8,
-                            }}
+                            style={[
+                              styles.statusText,
+                              item?.status === "Delivered"
+                                ? styles.deliveredStatus
+                                : styles.pendingStatus,
+                            ]}
                           >
-                            {item?._id}
+                            {item?.status}
                           </Text>
-
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <View>
-                              <Text style={{ fontSize: 12, color: "#666" }}>
-                                STATUS
-                              </Text>
-                              <Text
-                                style={{
-                                  fontSize: 14,
-                                  fontWeight: "500",
-                                  color:
-                                    item?.status === "completed"
-                                      ? "#4CAF50"
-                                      : "#FFA000",
-                                }}
-                              >
-                                {item?.status}
-                              </Text>
-                            </View>
-
-                            <View>
-                              <Text style={{ fontSize: 12, color: "#666" }}>
-                                TOTAL
-                              </Text>
-                              <Text
-                                style={{
-                                  fontSize: 16,
-                                  fontWeight: "600",
-                                  color: "#c518f0",
-                                }}
-                              >
-                                ${item?.totalAmount}
-                              </Text>
-                            </View>
-                          </View>
                         </View>
                       </View>
 
-                      <View
-                        style={{
-                          height: 1,
-                          backgroundColor: "#f0f0f0",
-                          marginVertical: 12,
-                        }}
-                      />
+                      <View style={styles.orderDetails}>
+                        <View>
+                          <Text style={styles.totalLabel}>TOTAL</Text>
+                          <Text style={styles.totalAmount}>
+                            ${item?.totalAmount}
+                          </Text>
+                        </View>
+                      </View>
 
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "flex-end",
-                        }}
-                      >
+                      <View style={styles.divider} />
+
+                      <View style={styles.orderActions}>
                         <Pressable
-                          style={{
-                            paddingVertical: 8,
-                            paddingHorizontal: 16,
-                            borderRadius: 8,
-                            backgroundColor: "#c518f0",
-                            minWidth: 120,
-                          }}
+                          style={styles.viewDetailsButton}
                           onPress={() =>
                             navigation.navigate("OrderScreen", { order: item })
                           }
                         >
-                          <Text
-                            style={{
-                              textAlign: "center",
-                              color: "white",
-                              fontSize: 14,
-                              fontWeight: "500",
-                            }}
-                          >
+                          <Text style={styles.viewDetailsText}>
                             View Details
                           </Text>
                         </Pressable>
@@ -343,4 +242,179 @@ const HistoryScreen = () => {
 };
 
 export default HistoryScreen;
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  tabItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  activeTab: {
+    backgroundColor: "#9d23bc",
+    borderRadius: 8,
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#666",
+  },
+  activeTabText: {
+    color: "#fff",
+  },
+  scrollContainer: {
+    flex: 1,
+    marginTop: 8,
+    marginHorizontal: 15,
+    marginBottom: 40,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  detectionCard: {
+    backgroundColor: "#fff",
+    marginVertical: 10,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  detectionContent: {
+    padding: 15,
+  },
+  detectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  detectionInfo: {
+    flex: 1,
+  },
+  detectionLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 4,
+  },
+  detectionId: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  detectionStatus: {
+    alignItems: "flex-end",
+  },
+  statusLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 4,
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#e0e0e0",
+    marginVertical: 10,
+  },
+  detectionActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  deleteButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: "#c518f0",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  orderCard: {
+    backgroundColor: "#fff",
+    marginVertical: 10,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  orderContent: {
+    padding: 15,
+  },
+  orderHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  orderInfo: {
+    flex: 1,
+  },
+  orderLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 4,
+  },
+  orderId: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  orderStatus: {
+    alignItems: "flex-end",
+  },
+  pendingStatus: {
+    color: "#FFA000",
+  },
+  deliveredStatus: {
+    color: "#4CAF50",
+  },
+  orderDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  totalLabel: {
+    fontSize: 12,
+    color: "#666",
+  },
+  totalAmount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#c518f0",
+  },
+  orderActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  viewDetailsButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: "#c518f0",
+  },
+  viewDetailsText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+});

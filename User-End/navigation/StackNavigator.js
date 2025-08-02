@@ -16,7 +16,6 @@ import UserScreen from "../screens/UserScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import OrderScreen from "../screens/OrderScreen";
-import PayScreen from "../screens/PayScreen";
 import DetectScreen from "../screens/DetectScreen";
 import DrawerContent from "../components/DrawerContent";
 import Entypo from "react-native-vector-icons/Entypo";
@@ -74,22 +73,15 @@ const StackNavigator = () => {
           swipeEnabled: true,
           gestureEnabled: true,
         })}
-        drawerContent={(props) => <DrawerContent {...props} />}
+        drawerContent={(props) => <DrawerContent />}
       >
         <Drawer.Screen
-          name="User"
-          component={UserScreen}
-          options={{ headerTitle: "User" }}
-        />
-        <Drawer.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{ headerTitle: "Profile" }}
-        />
-        <Drawer.Screen
-          name="History"
-          component={HistoryScreen}
-          options={{ headerTitle: "History" }}
+          name="TabNavigator"
+          component={TabNav}
+          options={{
+            headerShown: true,
+            headerTitle: "",
+          }}
         />
       </Drawer.Navigator>
     );
@@ -130,8 +122,11 @@ const StackNavigator = () => {
                   )}
                 </View>
               );
-            } else if (route.name === "Pay") {
-              iconName = "credit-card";
+            } else if (route.name === "Profile") {
+              iconName = "user";
+              IconComponent = Entypo;
+            } else if (route.name === "History") {
+              iconName = "time-slot";
               IconComponent = Entypo;
             }
 
@@ -155,7 +150,7 @@ const StackNavigator = () => {
       >
         <Tab.Screen
           name="Home"
-          component={DrawerNav}
+          component={UserScreen}
           options={{ headerShown: false }}
         />
         <Tab.Screen
@@ -169,8 +164,13 @@ const StackNavigator = () => {
           options={{ headerShown: false }}
         />
         <Tab.Screen
-          name="Pay"
-          component={PayScreen}
+          name="Profile"
+          component={ProfileScreen}
+          options={{ headerShown: false }}
+        />
+        <Tab.Screen
+          name="History"
+          component={HistoryScreen}
           options={{ headerShown: false }}
         />
       </Tab.Navigator>
@@ -193,17 +193,16 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Main"
           animation="slide_from_right"
-          component={TabNav}
+          component={DrawerNav}
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen
-          name="Home"
-          component={HomeScreen}
+          name="User"
+          component={UserScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="User" component={UserScreen} options={{}} />
         <Stack.Screen
           name="ProductDetails"
           component={ProductDetailsScreen}
@@ -214,17 +213,9 @@ const StackNavigator = () => {
           component={CartScreen}
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="Camera"
           component={DetectScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Pay"
-          component={PayScreen}
           options={{
             headerShown: false,
           }}

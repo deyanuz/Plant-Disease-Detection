@@ -110,6 +110,10 @@ const DetectScreen = () => {
         setIsDetected(true);
         setConfidence(result.confidence);
         setPredictedClass(result.predictedClass);
+      } else if (response.status === 201) {
+        setIsDetected(true);
+        setPredictedClass("Not a leaf");
+        setConfidence(response.data.confidence);
       } else {
         console.error("Failed to send image");
         Alert.alert("Error", "Failed to detect disease");
