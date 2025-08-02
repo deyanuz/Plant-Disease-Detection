@@ -17,52 +17,97 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* User Info */}
+      {/* User Info Header */}
       <View style={styles.profileHeader}>
-        <Image source={{ uri: userImage }} style={styles.profileImage} />
+        <View style={styles.profileImageContainer}>
+          <Image source={{ uri: userImage }} style={styles.profileImage} />
+          <View style={styles.editIconContainer}>
+            <Icon name="edit" size={16} color="#FFF" />
+          </View>
+        </View>
         <Text style={styles.profileName}>{userName}</Text>
         <Text style={styles.profileEmail}>{userEmail}</Text>
       </View>
 
-      {/* Editable Options */}
-      <ScrollView style={styles.optionsContainer}>
-        <View style={styles.optionItem}>
-          <Text style={styles.optionLabel}>Name</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter your name"
-            defaultValue={userName}
-          />
-        </View>
-        <View style={styles.optionItem}>
-          <Text style={styles.optionLabel}>Email</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter your email"
-            defaultValue={userEmail}
-          />
-        </View>
-        <View style={styles.optionItem}>
-          <Text style={styles.optionLabel}>Birthday</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter your birthday"
-          />
-        </View>
-        <View style={styles.optionItem}>
-          <Text style={styles.optionLabel}>Phone</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter your phone number"
-          />
-        </View>
-        <View style={styles.optionItem}>
-          <Text style={styles.optionLabel}>Password</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter your password"
-            secureTextEntry
-          />
+      {/* Profile Options */}
+      <ScrollView
+        style={styles.optionsContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+
+          <View style={styles.optionItem}>
+            <View style={styles.labelContainer}>
+              <Icon
+                name="user"
+                size={16}
+                color="#013220"
+                style={styles.labelIcon}
+              />
+              <Text style={styles.optionLabel}>Full Name</Text>
+            </View>
+            <TextInput
+              style={styles.inputField}
+              placeholder="Enter your full name"
+              defaultValue={userName}
+              placeholderTextColor="#999"
+            />
+          </View>
+
+          <View style={styles.optionItem}>
+            <View style={styles.labelContainer}>
+              <Icon
+                name="mail"
+                size={16}
+                color="#013220"
+                style={styles.labelIcon}
+              />
+              <Text style={styles.optionLabel}>Email Address</Text>
+            </View>
+            <TextInput
+              style={styles.inputField}
+              placeholder="Enter your email"
+              defaultValue={userEmail}
+              placeholderTextColor="#999"
+              keyboardType="email-address"
+            />
+          </View>
+
+          <View style={styles.optionItem}>
+            <View style={styles.labelContainer}>
+              <Icon
+                name="calendar"
+                size={16}
+                color="#013220"
+                style={styles.labelIcon}
+              />
+              <Text style={styles.optionLabel}>Date of Birth</Text>
+            </View>
+            <TextInput
+              style={styles.inputField}
+              placeholder="Enter your birthday"
+              placeholderTextColor="#999"
+            />
+          </View>
+
+          <View style={styles.optionItem}>
+            <View style={styles.labelContainer}>
+              <Icon
+                name="phone"
+                size={16}
+                color="#013220"
+                style={styles.labelIcon}
+              />
+              <Text style={styles.optionLabel}>Phone Number</Text>
+            </View>
+            <TextInput
+              style={styles.inputField}
+              placeholder="Enter your phone number"
+              placeholderTextColor="#999"
+              keyboardType="phone-pad"
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -77,60 +122,135 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: "center",
     paddingVertical: 20,
-    backgroundColor: "#013220",
+    backgroundColor: "#FFF",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  profileImageContainer: {
+    position: "relative",
+    marginBottom: 12,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 3,
+    borderColor: "#013220",
+  },
+  editIconContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#013220",
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFF",
   },
   profileName: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#FFF",
+    fontWeight: "700",
+    color: "#013220",
+    marginBottom: 4,
   },
   profileEmail: {
     fontSize: 14,
-    color: "#FFF",
-    marginBottom: 5,
+    color: "#666",
+    marginBottom: 2,
   },
   optionsContainer: {
+    flex: 1,
     paddingHorizontal: 20,
-    marginTop: 10,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#013220",
+    marginBottom: 16,
+    paddingLeft: 4,
   },
   optionItem: {
-    marginBottom: 15,
+    marginBottom: 16,
+  },
+  labelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  labelIcon: {
+    marginRight: 8,
   },
   optionLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 5,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#013220",
   },
   inputField: {
+    backgroundColor: "#FFF",
     borderWidth: 1,
     borderColor: "#E0E0E0",
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 12,
+    padding: 14,
     fontSize: 14,
-    backgroundColor: "#FFF",
+    color: "#333",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
   },
-  logoutButton: {
-    backgroundColor: "#D9534F",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
+  buttonContainer: {
     marginTop: 20,
+    marginBottom: 40,
   },
-  logoutButtonText: {
+  saveButton: {
+    backgroundColor: "#013220",
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: "#013220",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  saveButtonText: {
     color: "#FFF",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
+  },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D9534F",
+    backgroundColor: "#FFF",
+  },
+  logoutIcon: {
+    marginRight: 8,
+  },
+  logoutButtonText: {
+    color: "#D9534F",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

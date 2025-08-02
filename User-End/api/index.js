@@ -10,9 +10,9 @@ const Product = require("./models/product");
 const { HfInference } = require("@huggingface/inference");
 const Order = require("./models/order");
 const stripe = require("stripe")(
-  "sk_test_51P9ieEFzDwwNH06pKTBJMPBXnwuX0DALPs5qwKe1REnFgNlrGfcfYzjGBapYinKyXVqujQkHNPxgyDHN3Q8btgPC00uSAdffOw"
+  "sk_test_51RrapwF3HAo508cL8jqApLDRKeGo5j7PWkpyvPGiod6QiHUuHuSc5XYi2ESqQd5diyb7zSulAPMgdoh7ATVwyDvg002dMXj9Xr"
 );
-
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -26,6 +26,7 @@ const {
   sendPasswordResetEmail,
 } = require("firebase/auth");
 const { default: axios } = require("axios");
+const ChatHistory = require("./models/chatHistory");
 
 const app = express();
 const port = 8000;
@@ -184,7 +185,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
       (outputData_leaf_clf[maxIndex_leaf_clf] * 100).toFixed(3)
     );
     const predictedClass_leaf_clf = CLASS_NAMES_LEAF_CLF[maxIndex_leaf_clf];
-    console.log(predictedClass_leaf_clf);
+    console.log(predictions_leaf_clf.arraySync());
 
     if (predictedClass_leaf_clf !== "Leaf") {
       return res.status(201).json({
@@ -236,6 +237,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
 
     // Return the class name and confidence
     console.log(predictedClass);
+    console.log(predictedClass_leaf_clf);
     return res.json({ predictedClass: predictedClass, confidence: confidence });
   } catch (error) {
     console.error("Error during file upload:", error);
@@ -305,6 +307,9 @@ app.get("/:userID/orders", async (req, res) => {
       })),
       totalAmount: order.totalAmount,
       status: order.status,
+      contactNumber: order.contactNumber,
+      shippingAddress: order.shippingAddress,
+      paymentStatus: order.paymentStatus,
       orderDate: order.orderDate,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
@@ -339,31 +344,118 @@ app.delete("/:userID/detections/delete/:id", async (req, res) => {
 // Create Payment Intent endpoint
 app.post("/create-payment-intent", async (req, res) => {
   try {
-    const { amount } = req.body;
-    console.log("Received amount:", amount);
+    const {
+      amount,
+      currency = "usd",
+      paymentMethodTypes = ["card"],
+    } = req.body;
+    console.log("Received payment request:", {
+      amount,
+      currency,
+      paymentMethodTypes,
+    });
 
+    // Validate amount
     if (!amount || amount <= 0) {
       console.error("Invalid amount received:", amount);
-      return res.status(400).json({ error: "Invalid amount" });
+      return res.status(400).json({
+        error: "Invalid amount",
+        message: "Amount must be greater than 0",
+      });
+    }
+
+    // Validate currency
+    const validCurrencies = ["usd", "eur", "gbp", "cad", "aud"];
+    if (!validCurrencies.includes(currency.toLowerCase())) {
+      return res.status(400).json({
+        error: "Invalid currency",
+        message: "Currency not supported",
+      });
     }
 
     // Create payment intent with simplified configuration
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount),
-      currency: "usd",
-      payment_method_types: ["card"],
+      currency: currency.toLowerCase(),
+      payment_method_types: paymentMethodTypes,
+      metadata: {
+        source: "plant_disease_app",
+        timestamp: new Date().toISOString(),
+      },
+      description: `Plant Disease Store - Order Payment`,
     });
 
-    console.log("Payment intent created:", paymentIntent.id);
+    console.log("Payment intent created successfully:", {
+      id: paymentIntent.id,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      status: paymentIntent.status,
+    });
 
     res.json({
       paymentIntent: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
     });
   } catch (error) {
     console.error("Error creating payment intent:", error);
+
+    // Handle specific Stripe errors
+    if (error.type === "StripeInvalidRequestError") {
+      return res.status(400).json({
+        error: "Invalid payment request",
+        message: error.message,
+      });
+    }
+
+    if (error.type === "StripeAuthenticationError") {
+      return res.status(500).json({
+        error: "Payment service authentication failed",
+        message: "Please try again later",
+      });
+    }
+
     res.status(500).json({
       error: "Payment initialization failed",
-      details: error.message,
+      message: "Unable to process payment request. Please try again.",
+      details:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
+// Payment confirmation endpoint
+app.post("/confirm-payment", async (req, res) => {
+  try {
+    const { paymentIntentId } = req.body;
+
+    if (!paymentIntentId) {
+      return res.status(400).json({
+        error: "Payment intent ID is required",
+      });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status === "succeeded") {
+      res.json({
+        success: true,
+        paymentIntent: paymentIntent,
+        message: "Payment confirmed successfully",
+      });
+    } else {
+      res.json({
+        success: false,
+        status: paymentIntent.status,
+        message: "Payment not completed",
+      });
+    }
+  } catch (error) {
+    console.error("Error confirming payment:", error);
+    res.status(500).json({
+      error: "Payment confirmation failed",
+      message: "Unable to confirm payment status",
     });
   }
 });
@@ -438,37 +530,172 @@ app.put("/products/:id", async (req, res) => {
 });
 
 app.post("/chatbot", async (req, res) => {
-  const { question } = req.body;
-  console.log(question);
-  try {
-    const response = await hf.textGeneration({
-      model: "facebook/blenderbot-400M-distill",
-      inputs: question,
-      parameters: {
-        max_length: 100,
-        min_length: 10,
-        temperature: 0.7,
-        top_k: 50,
-        top_p: 0.9,
-        repetition_penalty: 1.2,
-      },
-    });
+  const { question, userID } = req.body;
+  console.log("Chatbot question:", question);
+  console.log("User ID:", userID);
 
-    res.json({ response: response.generated_text });
+  try {
+    // Using Google Gemini API
+    const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+    // Initialize Gemini (you'll need to set your API key)
+    const genAI = new GoogleGenerativeAI(
+      "AIzaSyBH6s86iQs4RMWQHTwT4UGa-eSBD8hDz3I"
+    );
+
+    // Get the generative model
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Create a context for plant disease detection
+    const context = `You are a helpful AI assistant specializing in plant disease detection and agricultural advice. 
+    Your expertise includes identifying and providing information about various plant diseases such as: 
+          - Cercospora Leaf Spot  
+          - Corn (maize) – Common Rust  
+          - Corn (maize) – Northern Leaf Blight  
+          - Corn (maize) – Healthy  
+          - Golden Mosaic  
+          - Healthy Jute Leaf  
+          - Healthy Rice  
+          - Leaf Blast  
+          - Rice Hispa
+
+    When a plant image or disease name is provided, respond with a concise yet informative summary including:
+          - Common symptoms  
+          - Likely cause(s)  
+          - Preventive measures  
+          - Recommended treatments or remedies
+    If the plant is healthy, confirm that and optionally offer general care tips.
+    Keep responses brief but useful for farmers, agronomists, or agricultural app users.`;
+
+    // Generate response
+    const result = await model.generateContent([context, question]);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log("Gemini response:", text);
+
+    // Save chat history to MongoDB
+    if (userID) {
+      try {
+        const chatEntry = new ChatHistory({
+          userID: userID,
+          question: question,
+          answer: text,
+        });
+        await chatEntry.save();
+        console.log("Chat history saved successfully");
+      } catch (saveError) {
+        console.error("Error saving chat history:", saveError);
+        // Don't fail the request if saving chat history fails
+      }
+    }
+
+    return res.json({ response: text });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Gemini API error:", err);
+    res.status(500).json({
+      error: "Failed to generate response",
+      details: err.message,
+    });
+  }
+});
+
+// Get chat history for a user
+app.get("/chat-history/:userID", async (req, res) => {
+  try {
+    const { userID } = req.params;
+    const { limit = 50, page = 1 } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    const chatHistory = await ChatHistory.find({ userID })
+      .sort({ timestamp: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const totalCount = await ChatHistory.countDocuments({ userID });
+
+    res.json({
+      chatHistory,
+      totalCount,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalCount / limit),
+    });
+  } catch (error) {
+    console.error("Error fetching chat history:", error);
+    res.status(500).json({ error: "Failed to fetch chat history" });
+  }
+});
+
+// Delete specific chat entry
+app.delete("/chat-history/:entryId", async (req, res) => {
+  try {
+    const { entryId } = req.params;
+    const deletedEntry = await ChatHistory.findByIdAndDelete(entryId);
+
+    if (!deletedEntry) {
+      return res.status(404).json({ error: "Chat entry not found" });
+    }
+
+    res.json({ message: "Chat entry deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting chat entry:", error);
+    res.status(500).json({ error: "Failed to delete chat entry" });
+  }
+});
+
+// Delete all chat history for a user
+app.delete("/chat-history/user/:userID", async (req, res) => {
+  try {
+    const { userID } = req.params;
+    const result = await ChatHistory.deleteMany({ userID });
+
+    res.json({
+      message: "All chat history deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error deleting user chat history:", error);
+    res.status(500).json({ error: "Failed to delete chat history" });
   }
 });
 
 app.post("/orders", async (req, res) => {
   try {
-    const { userID, products, totalAmount, paymentStatus } = req.body;
+    const {
+      userID,
+      products,
+      totalAmount,
+      paymentStatus,
+      contactNumber,
+      shippingAddress,
+      status,
+    } = req.body;
+
+    // Validate required fields
+    if (!userID || !products || !totalAmount) {
+      return res.status(400).json({
+        error: "Missing required fields",
+        message: "userID, products, and totalAmount are required",
+      });
+    }
+
+    // Validate shipping information
+    if (!contactNumber || !shippingAddress) {
+      return res.status(400).json({
+        error: "Missing shipping information",
+        message: "contactNumber and shippingAddress are required",
+      });
+    }
 
     const order = new Order({
       userID,
       products,
       totalAmount,
       paymentStatus: paymentStatus || "pending",
+      contactNumber,
+      shippingAddress,
+      status,
     });
 
     const savedOrder = await order.save();

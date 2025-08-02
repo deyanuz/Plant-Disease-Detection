@@ -7,8 +7,8 @@ import { StripeProvider } from "@stripe/stripe-react-native";
 export default function App() {
   return (
     <StripeProvider
-      publishableKey="your_publishable_key"
-      merchantIdentifier="merchant.com.plant.disease"
+      publishableKey="pk_test_51RrapwF3HAo508cLPgOEi6dABLM2ZSyzSROTOdiZEvw3K3juBOuffnhz2H1Vdb7eZ38vA6bloKgba6GCgSjMGphz00F6deJulp"
+      merchantIdentifier="merchant.com.plantdisease.store"
     >
       <AuthProvider>
         <StackNavigator />
