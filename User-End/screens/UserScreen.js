@@ -19,20 +19,23 @@ import { useCart } from "../context/CartContext";
 const UserScreen = () => {
   const navigation = useNavigation();
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const { addToCart } = useCart();
 
   const categories = [
     { id: 1, name: "Jute", icon: "🌾" },
-    { id: 2, name: "Tomato", icon: "🍅" },
-    { id: 3, name: "Strawberry", icon: "🍓" },
-    { id: 4, name: "Potato", icon: "🥔" },
-  ]; // Simulate fetching JSON data
+    { id: 2, name: "Corn", icon: "🌽" },
+    { id: 3, name: "Rice", icon: "🍚" },
+  ];
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`http://${IpAddress}:8000/products`);
         console.log(response.data);
         setProducts(response.data);
+        setFilteredProducts(response.data);
       } catch (error) {
         console.error("Error fetching products:", error);
         // You could set some error state here if needed
@@ -42,6 +45,28 @@ const UserScreen = () => {
     fetchProducts();
     console.log(products);
   }, []);
+
+  // Filter products based on search query and selected category
+  useEffect(() => {
+    let filtered = products;
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by selected category
+    if (selectedCategory) {
+      filtered = filtered.filter(product =>
+        product.category && product.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
+    }
+
+    setFilteredProducts(filtered);
+  }, [searchQuery, selectedCategory, products]);
 
   const handleAddToCart = (item) => {
     const cartItem = {
@@ -65,25 +90,78 @@ const UserScreen = () => {
             color="#888"
             style={styles.searchIcon}
           />
-          <TextInput placeholder="Search" style={styles.searchInput} />
+          <TextInput 
+            placeholder="Search products..." 
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable
+              onPress={() => setSearchQuery("")}
+              style={styles.clearButton}
+            >
+              <Icon name="cross" size={16} color="#888" />
+            </Pressable>
+          )}
         </View>
       </View>
 
       {/* Categories */}
       <Text style={styles.sectionTitle}>Categories</Text>
       <View style={styles.categoryContainer}>
+        <Pressable
+          style={[
+            styles.categoryItem,
+            selectedCategory === null && styles.selectedCategory
+          ]}
+          onPress={() => setSelectedCategory(null)}
+        >
+          <Text style={[
+            styles.categoryIcon,
+            selectedCategory === null && styles.selectedCategoryText
+          ]}>
+            🌾
+          </Text>
+          <Text style={[
+            styles.categoryText,
+            selectedCategory === null && styles.selectedCategoryText
+          ]}>
+            All
+          </Text>
+        </Pressable>
         {categories.map((category) => (
-          <View key={category.id} style={styles.categoryItem}>
-            <Text style={styles.categoryIcon}>{category.icon}</Text>
-            <Text style={styles.categoryText}>{category.name}</Text>
-          </View>
+          <Pressable
+            key={category.id}
+            style={[
+              styles.categoryItem,
+              selectedCategory === category.name && styles.selectedCategory
+            ]}
+            onPress={() => setSelectedCategory(category.name)}
+          >
+            <Text style={[
+              styles.categoryIcon,
+              selectedCategory === category.name && styles.selectedCategoryText
+            ]}>
+              {category.icon}
+            </Text>
+            <Text style={[
+              styles.categoryText,
+              selectedCategory === category.name && styles.selectedCategoryText
+            ]}>
+              {category.name}
+            </Text>
+          </Pressable>
         ))}
       </View>
 
       {/* Featured Products */}
-      <Text style={styles.sectionTitle}>Featured Products</Text>
+      <Text style={styles.sectionTitle}>
+        {searchQuery || selectedCategory ? "Search Results" : "Featured Products"}
+        {filteredProducts.length > 0 && ` (${filteredProducts.length})`}
+      </Text>
       <FlatList
-        data={products}
+        data={filteredProducts}
         numColumns={2}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
@@ -181,6 +259,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
+  clearButton: {
+    padding: 8,
+    marginRight: 8,
+  },
   searchIcon: {
     marginRight: 5,
     color: "#013220",
@@ -213,6 +295,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
+  selectedCategory: {
+    backgroundColor: "#013220",
+    borderColor: "#013220",
+  },
   categoryIcon: {
     fontSize: 28,
     color: "#013220",
@@ -223,6 +309,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#013220",
     fontWeight: "500",
+  },
+  selectedCategoryText: {
+    color: "#FFF",
   },
   productCard: {
     backgroundColor: "#FFF",
