@@ -160,6 +160,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "No image file uploaded" });
     }
     const userID = req.body.userID;
+    const forceDetection = req.body.forceDetection === "true";
     if (!userID) {
       return res.status(400).json({ error: "userID is required" });
     }
@@ -190,10 +191,13 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     const predictedClass_leaf_clf = CLASS_NAMES_LEAF_CLF[maxIndex_leaf_clf];
     console.log(predictions_leaf_clf.arraySync());
 
-    if (predictedClass_leaf_clf !== "Leaf") {
+    // If not a leaf and force detection is not enabled, return early
+    if (predictedClass_leaf_clf !== "Leaf" && !forceDetection) {
       return res.status(201).json({
         predictedClass: "Not a leaf",
         confidence: confidence_leaf_clf,
+        leafClassifierResult: predictedClass_leaf_clf,
+        leafClassifierConfidence: confidence_leaf_clf,
       });
     }
 
@@ -241,7 +245,20 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     // Return the class name and confidence
     console.log(predictedClass);
     console.log(predictedClass_leaf_clf);
-    return res.json({ predictedClass: predictedClass, confidence: confidence });
+
+    const response = {
+      predictedClass: predictedClass,
+      confidence: confidence,
+    };
+
+    // Include leaf classifier info if force detection was used
+    if (forceDetection && predictedClass_leaf_clf !== "Leaf") {
+      response.leafClassifierResult = predictedClass_leaf_clf;
+      response.leafClassifierConfidence = confidence_leaf_clf;
+      response.forceDetectionUsed = true;
+    }
+
+    return res.json(response);
   } catch (error) {
     console.error("Error during file upload:", error);
     res.status(500).json({ error: "Server error" });
@@ -258,8 +275,8 @@ app.get("/:userID/detections", async (req, res) => {
   try {
     const { userID } = req.params;
 
-    // Fetch detections filtered by userID
-    const detections = await Detection.find({ userID });
+    // Fetch detections filtered by userID, sorted by creation date (latest first)
+    const detections = await Detection.find({ userID }).sort({ createdAt: -1 });
 
     if (!detections || detections.length === 0) {
       return res.json({ message: "No detections yet" });
@@ -291,8 +308,8 @@ app.get("/:userID/orders", async (req, res) => {
   try {
     const { userID } = req.params;
 
-    // Fetch detections filtered by userID
-    const orders = await Order.find({ userID });
+    // Fetch orders filtered by userID, sorted by creation date (latest first)
+    const orders = await Order.find({ userID }).sort({ createdAt: -1 });
 
     if (!orders || orders.length === 0) {
       return res.json({ message: "No orders yet" });
@@ -734,7 +751,10 @@ app.post("/reset-password", async (req, res) => {
 
 // Test endpoint
 app.get("/test", (req, res) => {
-  res.json({ message: "API server is running!", timestamp: new Date().toISOString() });
+  res.json({
+    message: "API server is running!",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Update user profile endpoint
@@ -752,28 +772,34 @@ app.put("/update-profile", async (req, res) => {
     console.log("Token verified for user:", userId);
 
     const { firstName, lastName, email, phone, dateOfBirth } = req.body;
-    console.log("Received profile data:", { firstName, lastName, email, phone, dateOfBirth });
+    console.log("Received profile data:", {
+      firstName,
+      lastName,
+      email,
+      phone,
+      dateOfBirth,
+    });
 
     // Validate required fields
     if (!firstName || !email) {
       console.log("Missing required fields");
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing required fields",
-        message: "firstName and email are required" 
+        message: "firstName and email are required",
       });
     }
 
     // Check if email is already taken by another user
-    const existingUser = await User.findOne({ 
-      email: email, 
-      _id: { $ne: userId } 
+    const existingUser = await User.findOne({
+      email: email,
+      _id: { $ne: userId },
     });
-    
+
     if (existingUser) {
       console.log("Email already exists:", email);
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Email already exists",
-        message: "This email is already registered by another user" 
+        message: "This email is already registered by another user",
       });
     }
 
@@ -870,7 +896,7 @@ app.post("/upload-profile-image", upload.single("image"), async (req, res) => {
     // Update user's image in database
     const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${filename}`;
     console.log("Image URL:", imageUrl);
-    
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { image: imageUrl },

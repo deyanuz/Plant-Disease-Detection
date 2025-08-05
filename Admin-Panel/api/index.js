@@ -20,10 +20,11 @@ const port = 9000;
 app.use(express.json());
 app.use(cors());
 const router = express.Router();
-const JWT_SECRET = "af8e80f3ea01d3bfe178454c3ffa0e38f93cd977a1cfc66f0e1535a36d201384"; // Your secret key
+const JWT_SECRET =
+  "af8e80f3ea01d3bfe178454c3ffa0e38f93cd977a1cfc66f0e1535a36d201384"; // Your secret key
 
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -34,37 +35,46 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: function (req, file, cb) {
     // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'), false);
+      cb(new Error("Only image files are allowed!"), false);
     }
-  }
+  },
 });
 
 // Serve static files from uploads directory
-app.use('/uploads', express.static(uploadsDir));
+app.use("/uploads", express.static(uploadsDir));
 
 // Order status constants
-const ORDER_STATUSES = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
+const ORDER_STATUSES = [
+  "Pending",
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
+];
 
 // Connect to MongoDB
 mongoose
-.connect(
-  "mongodb+srv://khansumzunofficial:1234@plant-disease.opjv1.mongodb.net/?retryWrites=true&w=majority&appName=plant-disease"
-)
+  .connect(
+    "mongodb+srv://khansumzunofficial:1234@plant-disease.opjv1.mongodb.net/?retryWrites=true&w=majority&appName=plant-disease"
+  )
   .then(() => console.log("MongoDB connected"))
   .catch((error) => console.error("MongoDB connection error:", error));
 // Middleware for authenticating JWT
@@ -83,20 +93,20 @@ const authenticateToken = (req, res, next) => {
 // Routes
 
 // Upload Image
-app.post("/upload-image", upload.single('image'), async (req, res) => {
+app.post("/upload-image", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image file provided" });
     }
 
     // Create the image URL
-    const imageUrl = `http://${req.get('host')}/uploads/${req.file.filename}`;
-    
+    const imageUrl = `http://${req.get("host")}/uploads/${req.file.filename}`;
+
     console.log("Image uploaded successfully:", imageUrl);
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       imageUrl: imageUrl,
-      filename: req.file.filename 
+      filename: req.file.filename,
     });
   } catch (error) {
     console.error("Error uploading image:", error);
@@ -110,7 +120,7 @@ app.post("/products", async (req, res) => {
     const { name, description, price, category, stock } = req.body;
 
     // Enhanced validation
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
       return res.status(400).json({ error: "Valid product name is required" });
     }
 
@@ -118,15 +128,27 @@ app.post("/products", async (req, res) => {
       return res.status(400).json({ error: "Valid price is required" });
     }
 
-    if (!category || typeof category !== 'string' || category.trim().length === 0) {
+    if (
+      !category ||
+      typeof category !== "string" ||
+      category.trim().length === 0
+    ) {
       return res.status(400).json({ error: "Valid category is required" });
     }
 
     // Validate against allowed categories
-    const allowedCategories = ["Jute", "Tomato", "Strawberry", "Potato", "Other"];
+    const allowedCategories = [
+      "Jute",
+      "Tomato",
+      "Strawberry",
+      "Potato",
+      "Other",
+    ];
     if (!allowedCategories.includes(category)) {
-      return res.status(400).json({ 
-        error: "Invalid category. Allowed categories: " + allowedCategories.join(", ")
+      return res.status(400).json({
+        error:
+          "Invalid category. Allowed categories: " +
+          allowedCategories.join(", "),
       });
     }
 
@@ -137,13 +159,13 @@ app.post("/products", async (req, res) => {
       price: parseFloat(price),
       category: category.trim(),
       stock: parseInt(stock) || 0,
-      image: req.body.image || "https://via.placeholder.com/150" // Default image
+      image: req.body.image || "https://via.placeholder.com/150", // Default image
     });
 
-    console.log('Attempting to save product:', newProduct);
+    console.log("Attempting to save product:", newProduct);
     const savedProduct = await newProduct.save();
-    console.log('Product saved successfully:', savedProduct);
-    
+    console.log("Product saved successfully:", savedProduct);
+
     // Add notification for admin
     await createNotification(
       "🆕 New Product Added",
@@ -155,19 +177,19 @@ app.post("/products", async (req, res) => {
     res.status(201).json(savedProduct);
   } catch (error) {
     console.error("Server error creating product:", error);
-    
+
     // Handle mongoose validation errors
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        error: "Validation error", 
-        details: Object.values(error.errors).map(err => err.message)
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        error: "Validation error",
+        details: Object.values(error.errors).map((err) => err.message),
       });
     }
 
     // Handle other errors
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to create product",
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -241,7 +263,7 @@ app.delete("/products/:id", async (req, res) => {
 // Get All Admins
 app.get("/admins", async (req, res) => {
   try {
-    const admins = await Admin.find().select('-password');
+    const admins = await Admin.find().select("-password");
     res.status(200).json(admins);
   } catch (error) {
     console.error("Error fetching admins:", error);
@@ -253,62 +275,76 @@ app.post("/admins", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log("Received admin creation request:", { email, password: password ? "***" : "undefined" });
+    console.log("Received admin creation request:", {
+      email,
+      password: password ? "***" : "undefined",
+    });
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required." });
+      return res
+        .status(400)
+        .json({ error: "Email and password are required." });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: "Password must be at least 6 characters long." });
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters long." });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Please enter a valid email address." });
+      return res
+        .status(400)
+        .json({ error: "Please enter a valid email address." });
     }
 
     const existingAdmin = await Admin.findOne({ email: email.toLowerCase() });
     if (existingAdmin) {
-      return res.status(400).json({ error: "Admin with this email already exists" });
+      return res
+        .status(400)
+        .json({ error: "Admin with this email already exists" });
     }
 
     const isPrimary = (await Admin.countDocuments()) === 0; // First admin is primary
-    const newAdmin = new Admin({ 
-      email: email.toLowerCase().trim(), 
-      password, 
-      isPrimary 
+    const newAdmin = new Admin({
+      email: email.toLowerCase().trim(),
+      password,
+      isPrimary,
     });
 
-    console.log("Attempting to save admin:", { email: newAdmin.email, isPrimary: newAdmin.isPrimary });
+    console.log("Attempting to save admin:", {
+      email: newAdmin.email,
+      isPrimary: newAdmin.isPrimary,
+    });
     await newAdmin.save();
-    
+
     // Don't send password in response
     const adminResponse = {
       _id: newAdmin._id,
       email: newAdmin.email,
       isPrimary: newAdmin.isPrimary,
-      createdAt: newAdmin.createdAt
+      createdAt: newAdmin.createdAt,
     };
-    
+
     console.log("Admin created successfully:", adminResponse);
     res.status(201).json(adminResponse);
   } catch (error) {
     console.error("Error creating admin:", error);
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        error: "Validation error", 
-        details: Object.values(error.errors).map(err => err.message)
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        error: "Validation error",
+        details: Object.values(error.errors).map((err) => err.message),
       });
     }
-    
-    res.status(500).json({ error: "Failed to create admin", details: error.message });
+
+    res
+      .status(500)
+      .json({ error: "Failed to create admin", details: error.message });
   }
 });
-
-
 
 // Delete Admin
 app.delete("/admins/:id", async (req, res) => {
@@ -331,7 +367,9 @@ app.post("/admin/login", async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     const admin = await Admin.findOne({ email });
@@ -363,7 +401,7 @@ app.post("/admin/login", async (req, res) => {
 app.get("/orders", async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
-    
+
     // Get user information for each order
     const ordersWithUserInfo = await Promise.all(
       orders.map(async (order) => {
@@ -371,9 +409,11 @@ app.get("/orders", async (req, res) => {
           const user = await User.findById(order.userID);
           return {
             ...order.toObject(),
-            customerName: user ? `${user.firstName} ${user.lastName}`.trim() : "Unknown User",
+            customerName: user
+              ? `${user.firstName} ${user.lastName}`.trim()
+              : "Unknown User",
             customerEmail: user ? user.email : "N/A",
-            customerImage: user ? user.image : null
+            customerImage: user ? user.image : null,
           };
         } catch (error) {
           console.error(`Error fetching user for order ${order._id}:`, error);
@@ -381,12 +421,12 @@ app.get("/orders", async (req, res) => {
             ...order.toObject(),
             customerName: "Unknown User",
             customerEmail: "N/A",
-            customerImage: null
+            customerImage: null,
           };
         }
       })
     );
-    
+
     res.json(ordersWithUserInfo);
   } catch (error) {
     console.error("Error fetching orders:", error);
@@ -416,12 +456,16 @@ app.put("/orders/:id/status", async (req, res) => {
 
     // Get user information for notification
     const user = await User.findById(updatedOrder.userID);
-    const customerName = user ? `${user.firstName} ${user.lastName}`.trim() : "Unknown Customer";
+    const customerName = user
+      ? `${user.firstName} ${user.lastName}`.trim()
+      : "Unknown Customer";
 
     // Create notification for admin
     await createNotification(
       `📦 Order Status Updated`,
-      `Order #${updatedOrder._id.slice(-6)} from ${customerName} is now ${status}`,
+      `Order #${updatedOrder._id
+        .toString()
+        .slice(-6)} from ${customerName} is now ${status}`,
       "order",
       true
     );
@@ -456,14 +500,14 @@ app.get("/dashboard/stats", async (req, res) => {
       totalOrders,
       totalUsers,
       pendingOrders,
-      notifications
+      notifications,
     ] = await Promise.all([
       Admin.countDocuments(),
       Product.countDocuments(),
       Order.countDocuments(),
       User.countDocuments(),
-      Order.countDocuments({ status: 'Paid' }), // Changed from 'Pending' to 'Paid' to match our status
-      Notification.countDocuments({ forAdmin: true, isRead: false })
+      Order.countDocuments({ status: "Paid" }), // Changed from 'Pending' to 'Paid' to match our status
+      Notification.countDocuments({ forAdmin: true, isRead: false }),
     ]);
 
     res.json({
@@ -472,7 +516,7 @@ app.get("/dashboard/stats", async (req, res) => {
       totalOrders,
       totalUsers,
       pendingOrders,
-      notifications
+      notifications,
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -484,35 +528,37 @@ app.get("/dashboard/stats", async (req, res) => {
 app.get("/api/users", async (req, res) => {
   try {
     const users = await User.find({})
-      .select('-password') // Exclude password from response
+      .select("-password") // Exclude password from response
       .sort({ createdAt: -1 });
-    
+
     // Get detection and order counts for each user
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
         const userId = user._id || user.id;
-        const detectionCount = await Detection.countDocuments({ userID: userId });
+        const detectionCount = await Detection.countDocuments({
+          userID: userId,
+        });
         const orderCount = await Order.countDocuments({ userID: userId });
-        
+
         return {
           ...user.toObject(),
           detectionCount,
-          orderCount
+          orderCount,
         };
       })
     );
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       users: usersWithStats,
-      total: usersWithStats.length 
+      total: usersWithStats.length,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: "Failed to fetch users",
-      error: error.message 
+      error: error.message,
     });
   }
 });
@@ -521,7 +567,7 @@ app.get("/api/users", async (req, res) => {
 app.post("/api/user-registered", async (req, res) => {
   try {
     const { userID, firstName, lastName, email } = req.body;
-    
+
     // Create notification for admin
     await createNotification(
       "👤 New User Registered",
@@ -529,7 +575,7 @@ app.post("/api/user-registered", async (req, res) => {
       "admin",
       true
     );
-    
+
     res.json({ success: true, message: "Notification created" });
   } catch (error) {
     console.error("Error creating user registration notification:", error);
@@ -540,8 +586,9 @@ app.post("/api/user-registered", async (req, res) => {
 // Get notifications
 app.get("/notifications", async (req, res) => {
   try {
-    const notifications = await Notification.find({ forAdmin: true })
-      .sort({ createdAt: -1 });
+    const notifications = await Notification.find({ forAdmin: true }).sort({
+      createdAt: -1,
+    });
     res.json(notifications);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch notifications" });
@@ -569,7 +616,7 @@ const createNotification = async (title, message, type, forAdmin = false) => {
       title,
       message,
       type,
-      forAdmin
+      forAdmin,
     });
     await notification.save();
     console.log(`✅ Notification created: ${title} - ${message}`);
@@ -582,10 +629,17 @@ const createNotification = async (title, message, type, forAdmin = false) => {
 // Create Order endpoint with notification
 app.post("/orders", async (req, res) => {
   try {
-    const { userID, products, totalAmount, shippingAddress, contactNumber } = req.body;
+    const { userID, products, totalAmount, shippingAddress, contactNumber } =
+      req.body;
 
     // Validate required fields
-    if (!userID || !products || !totalAmount || !shippingAddress || !contactNumber) {
+    if (
+      !userID ||
+      !products ||
+      !totalAmount ||
+      !shippingAddress ||
+      !contactNumber
+    ) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
@@ -596,19 +650,23 @@ app.post("/orders", async (req, res) => {
       totalAmount,
       shippingAddress,
       contactNumber,
-      status: "Paid" // Default status
+      status: "Paid", // Default status
     });
 
     const savedOrder = await order.save();
 
     // Get user information for notification
     const user = await User.findById(userID);
-    const customerName = user ? `${user.firstName} ${user.lastName}`.trim() : "Unknown Customer";
+    const customerName = user
+      ? `${user.firstName} ${user.lastName}`.trim()
+      : "Unknown Customer";
 
     // Create notification for admin
     await createNotification(
       "🛒 New Order Received",
-      `Order #${savedOrder._id.slice(-6)} from ${customerName} - $${totalAmount.toFixed(2)}`,
+      `Order #${savedOrder._id.slice(
+        -6
+      )} from ${customerName} - $${totalAmount.toFixed(2)}`,
       "order",
       true
     );

@@ -20,6 +20,8 @@ const DetectScreen = () => {
   const [isDetected, setIsDetected] = useState(false);
   const [predictedClass, setPredictedClass] = useState();
   const [confidence, setConfidence] = useState();
+  const [leafClassifierResult, setLeafClassifierResult] = useState();
+  const [forceDetectionUsed, setForceDetectionUsed] = useState(false);
   const { userID } = useContext(AuthContext);
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -29,6 +31,8 @@ const DetectScreen = () => {
     setImage("");
     setConfidence("");
     setPredictedClass("");
+    setLeafClassifierResult("");
+    setForceDetectionUsed(false);
   };
   const pickFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -75,7 +79,7 @@ const DetectScreen = () => {
     }
   };
 
-  const sendImageToBackend = async () => {
+  const sendImageToBackend = async (forceDetection = false) => {
     if (!image) {
       Alert.alert("Error", "Please select an image first.");
       return;
@@ -90,6 +94,7 @@ const DetectScreen = () => {
       type: "image/jpeg",
     });
     formData.append("userID", userID);
+    formData.append("forceDetection", forceDetection.toString());
 
     try {
       // Send the image to the backend
@@ -105,15 +110,28 @@ const DetectScreen = () => {
 
       // Check for successful response
       if (response.status === 200) {
-        const result = response.data; // Directly access response.data
+        const result = response.data;
         console.log("Prediction Result:", result);
         setIsDetected(true);
         setConfidence(result.confidence);
         setPredictedClass(result.predictedClass);
+
+        // Handle force detection results
+        if (result.forceDetectionUsed) {
+          setForceDetectionUsed(true);
+          setLeafClassifierResult(result.leafClassifierResult);
+        } else {
+          setForceDetectionUsed(false);
+          setLeafClassifierResult("");
+        }
       } else if (response.status === 201) {
         setIsDetected(true);
         setPredictedClass("Not a leaf");
         setConfidence(response.data.confidence);
+        setLeafClassifierResult(
+          response.data.leafClassifierResult || "Not a leaf"
+        );
+        setForceDetectionUsed(false);
       } else {
         console.error("Failed to send image");
         Alert.alert("Error", "Failed to detect disease");
@@ -179,24 +197,68 @@ const DetectScreen = () => {
             <Text style={styles.predictedClassText}>Detected Condition:</Text>
             <Text style={styles.conditionText}>{predictedClass}</Text>
             <Text style={styles.confidentText}>Confidence: {confidence}%</Text>
+
+            {/* Show leaf classifier result if force detection was used */}
+            {forceDetectionUsed && leafClassifierResult && (
+              <View style={styles.leafClassifierInfo}>
+                <Text style={styles.leafClassifierText}>
+                  Leaf Classifier Result: {leafClassifierResult}
+                </Text>
+                <Text style={styles.forceDetectionNote}>
+                  (Disease detection was forced)
+                </Text>
+              </View>
+            )}
           </View>
-          <TouchableOpacity
-            onPress={refreshDetection}
-            style={styles.primaryButton}
-          >
-            <Icon
-              name="refresh"
-              size={20}
-              color="#FFF"
-              style={styles.buttonIcon}
-            />
-            <Text style={styles.buttonText}>Try Another Image</Text>
-          </TouchableOpacity>
+
+          {/* Show force detection button if result was "Not a leaf" and force detection wasn't used */}
+          {predictedClass === "Not a leaf" && !forceDetectionUsed ? (
+            <View style={styles.buttonGroup}>
+              <TouchableOpacity
+                onPress={() => sendImageToBackend(true)}
+                style={styles.forceButton}
+              >
+                <Icon
+                  name="exclamation-triangle"
+                  size={20}
+                  color="#FFF"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.buttonText}>Force Disease Detection</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={refreshDetection}
+                style={styles.primaryButton}
+              >
+                <Icon
+                  name="refresh"
+                  size={20}
+                  color="#FFF"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.buttonText}>Try Another Image</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={refreshDetection}
+              style={styles.primaryButton}
+            >
+              <Icon
+                name="refresh"
+                size={20}
+                color="#FFF"
+                style={styles.buttonIcon}
+              />
+              <Text style={styles.buttonText}>Try Another Image</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : image ? (
         <View style={styles.detectButtonContainer}>
           <TouchableOpacity
-            onPress={sendImageToBackend}
+            onPress={() => sendImageToBackend(false)}
             style={styles.primaryButton}
           >
             <Icon
@@ -381,15 +443,61 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#666",
     marginBottom: 5,
+    textAlign: "center",
   },
   conditionText: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#013220",
     marginBottom: 10,
+    textAlign: "center",
   },
   confidentText: {
     fontSize: 16,
     color: "#666",
+    textAlign: "center",
+  },
+  forceButton: {
+    width: "100%",
+    flexDirection: "row",
+    paddingVertical: 15,
+    backgroundColor: "#FF6B35",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  leafClassifierInfo: {
+    marginTop: 15,
+    padding: 10,
+    backgroundColor: "#FFF3CD",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#FFEAA7",
+  },
+  leafClassifierText: {
+    fontSize: 14,
+    color: "#856404",
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  forceDetectionNote: {
+    fontSize: 12,
+    color: "#856404",
+    fontStyle: "italic",
+    marginTop: 2,
+    textAlign: "center",
+  },
+  buttonGroup: {
+    width: "100%",
+    alignItems: "center",
   },
 });
