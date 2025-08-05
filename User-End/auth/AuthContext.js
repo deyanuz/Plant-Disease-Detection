@@ -19,24 +19,37 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateToken = async (newToken) => {
+    try {
+      await AsyncStorage.setItem("token", newToken);
+      setToken(newToken);
+    } catch (error) {
+      console.error("Error updating token:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       const token = await AsyncStorage.getItem("token");
       if (token) {
-        const decodedToken = jwtDecode(token);
-        const userID = decodedToken.userID;
-        const userImage = decodedToken.image;
-        const userEmail = decodedToken.email;
-        const userFirstName = decodedToken.firstName;
-        const userLastName = decodedToken.lastName;
-        console.log(decodedToken);
-        setUserImage(userImage);
-        setUserID(userID);
-        setUserEmail(userEmail);
-        setUserName(
-          userLastName ? userFirstName + " " + userLastName : userFirstName
-        );
-        console.log(userName);
+        try {
+          const decodedToken = jwtDecode(token);
+          const userID = decodedToken.userID;
+          const userImage = decodedToken.image;
+          const userEmail = decodedToken.email;
+          const userFirstName = decodedToken.firstName;
+          const userLastName = decodedToken.lastName;
+          console.log(decodedToken);
+          setUserImage(userImage);
+          setUserID(userID);
+          setUserEmail(userEmail);
+          setUserName(
+            userLastName ? userFirstName + " " + userLastName : userFirstName
+          );
+          console.log(userName);
+        } catch (error) {
+          console.error("Error decoding token:", error);
+        }
       }
     };
 
@@ -46,11 +59,13 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     isLoggedIn();
   }, [token]);
+  
   return (
     <AuthContext.Provider
       value={{
         token,
         setToken,
+        updateToken,
         userID,
         setUserID,
         userImage,
