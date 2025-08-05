@@ -157,6 +157,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "No image file uploaded" });
     }
     const userID = req.body.userID;
+    const forceDetection = req.body.forceDetection === "true";
     if (!userID) {
       return res.status(400).json({ error: "userID is required" });
     }
@@ -187,10 +188,13 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     const predictedClass_leaf_clf = CLASS_NAMES_LEAF_CLF[maxIndex_leaf_clf];
     console.log(predictions_leaf_clf.arraySync());
 
-    if (predictedClass_leaf_clf !== "Leaf") {
+    // If not a leaf and force detection is not enabled, return early
+    if (predictedClass_leaf_clf !== "Leaf" && !forceDetection) {
       return res.status(201).json({
         predictedClass: "Not a leaf",
         confidence: confidence_leaf_clf,
+        leafClassifierResult: predictedClass_leaf_clf,
+        leafClassifierConfidence: confidence_leaf_clf,
       });
     }
 
@@ -238,7 +242,20 @@ app.post("/detect", upload.single("image"), async (req, res) => {
     // Return the class name and confidence
     console.log(predictedClass);
     console.log(predictedClass_leaf_clf);
-    return res.json({ predictedClass: predictedClass, confidence: confidence });
+
+    const response = {
+      predictedClass: predictedClass,
+      confidence: confidence,
+    };
+
+    // Include leaf classifier info if force detection was used
+    if (forceDetection && predictedClass_leaf_clf !== "Leaf") {
+      response.leafClassifierResult = predictedClass_leaf_clf;
+      response.leafClassifierConfidence = confidence_leaf_clf;
+      response.forceDetectionUsed = true;
+    }
+
+    return res.json(response);
   } catch (error) {
     console.error("Error during file upload:", error);
     res.status(500).json({ error: "Server error" });
