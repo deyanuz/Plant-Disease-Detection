@@ -21,10 +21,9 @@ import IpAddress from "../DeviceConfig";
 const BASE_URL = `http://${IpAddress}:9000`;
 
 const ORDER_STATUSES = [
-  "Pending",
-  "Confirmed",
+  "Paid",
   "Processing",
-  "Shipped",
+  "Shipped", 
   "Delivered",
   "Cancelled",
 ];
@@ -71,9 +70,7 @@ const ManageOrders = ({ navigation }) => {
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
-      case "pending":
-        return "#FFA500";
-      case "confirmed":
+      case "paid":
         return "#3498db";
       case "processing":
         return "#9b59b6";
@@ -109,18 +106,29 @@ const ManageOrders = ({ navigation }) => {
         </View>
 
         <View style={styles.orderDetails}>
-          <Text style={styles.customerName}>
-            Customer: {item.customerName || "N/A"}
-          </Text>
+          <View style={styles.customerInfo}>
+            <Text style={styles.customerName}>
+              Customer: {item.customerName || "Unknown User"}
+            </Text>
+            <Text style={styles.customerEmail}>
+              Email: {item.customerEmail || "N/A"}
+            </Text>
+          </View>
           <Text style={styles.orderDate}>
             Date: {new Date(item.createdAt).toLocaleDateString()}
           </Text>
           <Text style={styles.totalAmount}>
             Total: ${item.totalAmount?.toFixed(2)}
           </Text>
+          <Text style={styles.shippingInfo}>
+            Address: {item.shippingAddress || "N/A"}
+          </Text>
+          <Text style={styles.contactInfo}>
+            Contact: {item.contactNumber || "N/A"}
+          </Text>
           <Text style={styles.productDetails}>Products:</Text>
-          {item.products.map((product) => (
-            <Text key={product._id} style={styles.productText}>
+          {item.products.map((product, index) => (
+            <Text key={index} style={styles.productText}>
               {product.name} - Qty: {product.quantity} - Price: ${product.price.toFixed(2)}
             </Text>
           ))}
@@ -258,9 +266,28 @@ const styles = StyleSheet.create({
   orderDetails: {
     marginBottom: SIZES.margin,
   },
+  customerInfo: {
+    marginBottom: SIZES.base,
+  },
   customerName: {
     fontSize: SIZES.font,
     color: "black",
+    fontWeight: "bold",
+    marginBottom: 2,
+  },
+  customerEmail: {
+    fontSize: SIZES.font - 2,
+    color: "#666",
+    marginBottom: SIZES.base,
+  },
+  shippingInfo: {
+    fontSize: SIZES.font,
+    color: "#666",
+    marginBottom: SIZES.base,
+  },
+  contactInfo: {
+    fontSize: SIZES.font,
+    color: "#666",
     marginBottom: SIZES.base,
   },
   orderDate: {

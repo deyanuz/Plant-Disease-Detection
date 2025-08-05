@@ -359,11 +359,35 @@ app.post("/admin/login", async (req, res) => {
   }
 });
 
-// Get all orders
+// Get all orders with user information
 app.get("/orders", async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
-    res.json(orders);
+    
+    // Get user information for each order
+    const ordersWithUserInfo = await Promise.all(
+      orders.map(async (order) => {
+        try {
+          const user = await User.findById(order.userID);
+          return {
+            ...order.toObject(),
+            customerName: user ? `${user.firstName} ${user.lastName}`.trim() : "Unknown User",
+            customerEmail: user ? user.email : "N/A",
+            customerImage: user ? user.image : null
+          };
+        } catch (error) {
+          console.error(`Error fetching user for order ${order._id}:`, error);
+          return {
+            ...order.toObject(),
+            customerName: "Unknown User",
+            customerEmail: "N/A",
+            customerImage: null
+          };
+        }
+      })
+    );
+    
+    res.json(ordersWithUserInfo);
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).json({ error: "Failed to fetch orders" });
