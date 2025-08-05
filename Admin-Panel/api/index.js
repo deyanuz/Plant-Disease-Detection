@@ -9,6 +9,7 @@ const Admin = require("./models/admins");
 const Order = require("./models/order");
 const Notification = require("./models/notification");
 const User = require("./models/user");
+const Detection = require("./models/detection");
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -443,17 +444,32 @@ app.get("/dashboard/stats", async (req, res) => {
   }
 });
 
-// Get all users
+// Get all users with detection and order counts
 app.get("/api/users", async (req, res) => {
   try {
     const users = await User.find({})
       .select('-password') // Exclude password from response
       .sort({ createdAt: -1 });
     
+    // Get detection and order counts for each user
+    const usersWithStats = await Promise.all(
+      users.map(async (user) => {
+        const userId = user._id || user.id;
+        const detectionCount = await Detection.countDocuments({ userID: userId });
+        const orderCount = await Order.countDocuments({ userID: userId });
+        
+        return {
+          ...user.toObject(),
+          detectionCount,
+          orderCount
+        };
+      })
+    );
+    
     res.json({ 
       success: true, 
-      users: users,
-      total: users.length 
+      users: usersWithStats,
+      total: usersWithStats.length 
     });
   } catch (error) {
     console.error("Error fetching users:", error);

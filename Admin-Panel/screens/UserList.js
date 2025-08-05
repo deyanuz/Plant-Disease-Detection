@@ -91,6 +91,23 @@ const UserList = ({ navigation }) => {
             <Text style={styles.userName}>
               {`${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown User"}
             </Text>
+            <Text style={styles.userEmail}>
+              {item.email || "No email"}
+            </Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Ionicons name="leaf-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.statText}>
+                  {item.detectionCount || 0} Detections
+                </Text>
+              </View>
+              <View style={styles.statItem}>
+                <Ionicons name="bag-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.statText}>
+                  {item.orderCount || 0} Orders
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
       </LinearGradient>
@@ -128,7 +145,20 @@ const UserList = ({ navigation }) => {
               <Text style={styles.statNumber}>{users.length}</Text>
               <Text style={styles.statLabel}>Total Users</Text>
             </View>
-            
+            <View style={styles.statCard}>
+              <Ionicons name="leaf" size={24} color={COLORS.primary} />
+              <Text style={styles.statNumber}>
+                {users.reduce((sum, user) => sum + (user.detectionCount || 0), 0)}
+              </Text>
+              <Text style={styles.statLabel}>Total Detections</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Ionicons name="bag" size={24} color={COLORS.primary} />
+              <Text style={styles.statNumber}>
+                {users.reduce((sum, user) => sum + (user.orderCount || 0), 0)}
+              </Text>
+              <Text style={styles.statLabel}>Total Orders</Text>
+            </View>
           </View>
 
           {loading && !refreshing ? (
@@ -247,6 +277,26 @@ const styles = StyleSheet.create({
     ...FONTS.h4,
     color: COLORS.black,
     fontWeight: '600',
+  },
+  userEmail: {
+    ...FONTS.body4,
+    color: COLORS.gray,
+    marginTop: 2,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    marginTop: 8,
+    gap: 16,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statText: {
+    ...FONTS.body4,
+    color: COLORS.gray,
+    fontSize: 12,
   },
   separator: {
     height: 8,
