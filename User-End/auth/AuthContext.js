@@ -23,6 +23,27 @@ const AuthProvider = ({ children }) => {
     try {
       await AsyncStorage.setItem("token", newToken);
       setToken(newToken);
+      
+      // Refresh user data from the new token
+      if (newToken) {
+        try {
+          const decodedToken = jwtDecode(newToken);
+          const userID = decodedToken.userID;
+          const userImage = decodedToken.image;
+          const userEmail = decodedToken.email;
+          const userFirstName = decodedToken.firstName;
+          const userLastName = decodedToken.lastName;
+          
+          setUserImage(userImage);
+          setUserID(userID);
+          setUserEmail(userEmail);
+          setUserName(
+            userLastName ? userFirstName + " " + userLastName : userFirstName
+          );
+        } catch (error) {
+          console.error("Error decoding new token:", error);
+        }
+      }
     } catch (error) {
       console.error("Error updating token:", error);
     }
@@ -58,7 +79,7 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     isLoggedIn();
-  }, [token]);
+  }, []);
   
   return (
     <AuthContext.Provider

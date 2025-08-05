@@ -144,12 +144,12 @@ app.post("/products", async (req, res) => {
     const savedProduct = await newProduct.save();
     console.log('Product saved successfully:', savedProduct);
     
-    // Add notification
+    // Add notification for admin
     await createNotification(
-      "New Product Added",
-      `${savedProduct.name} has been added to the store`,
+      "🆕 New Product Added",
+      `${savedProduct.name} has been added to the store - $${savedProduct.price}`,
       "product",
-      false
+      true
     );
 
     res.status(201).json(savedProduct);
@@ -359,18 +359,42 @@ app.post("/admin/login", async (req, res) => {
   }
 });
 
-// Get all orders
+// Get all orders with user information
 app.get("/orders", async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
-    res.json(orders);
+    
+    // Get user information for each order
+    const ordersWithUserInfo = await Promise.all(
+      orders.map(async (order) => {
+        try {
+          const user = await User.findById(order.userID);
+          return {
+            ...order.toObject(),
+            customerName: user ? `${user.firstName} ${user.lastName}`.trim() : "Unknown User",
+            customerEmail: user ? user.email : "N/A",
+            customerImage: user ? user.image : null
+          };
+        } catch (error) {
+          console.error(`Error fetching user for order ${order._id}:`, error);
+          return {
+            ...order.toObject(),
+            customerName: "Unknown User",
+            customerEmail: "N/A",
+            customerImage: null
+          };
+        }
+      })
+    );
+    
+    res.json(ordersWithUserInfo);
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
 
-// Update order status
+// Update order status with notification
 app.put("/orders/:id/status", async (req, res) => {
   try {
     const { id } = req.params;
@@ -389,6 +413,18 @@ app.put("/orders/:id/status", async (req, res) => {
     if (!updatedOrder) {
       return res.status(404).json({ error: "Order not found" });
     }
+
+    // Get user information for notification
+    const user = await User.findById(updatedOrder.userID);
+    const customerName = user ? `${user.firstName} ${user.lastName}`.trim() : "Unknown Customer";
+
+    // Create notification for admin
+    await createNotification(
+      `📦 Order Status Updated`,
+      `Order #${updatedOrder._id.slice(-6)} from ${customerName} is now ${status}`,
+      "order",
+      true
+    );
 
     res.json(updatedOrder);
   } catch (error) {
@@ -426,7 +462,7 @@ app.get("/dashboard/stats", async (req, res) => {
       Product.countDocuments(),
       Order.countDocuments(),
       User.countDocuments(),
-      Order.countDocuments({ status: 'Pending' }),
+      Order.countDocuments({ status: 'Paid' }), // Changed from 'Pending' to 'Paid' to match our status
       Notification.countDocuments({ forAdmin: true, isRead: false })
     ]);
 
@@ -481,6 +517,26 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+// Add new user registration notification endpoint
+app.post("/api/user-registered", async (req, res) => {
+  try {
+    const { userID, firstName, lastName, email } = req.body;
+    
+    // Create notification for admin
+    await createNotification(
+      "👤 New User Registered",
+      `${firstName} ${lastName} (${email}) has joined the platform`,
+      "admin",
+      true
+    );
+    
+    res.json({ success: true, message: "Notification created" });
+  } catch (error) {
+    console.error("Error creating user registration notification:", error);
+    res.status(500).json({ error: "Failed to create notification" });
+  }
+});
+
 // Get notifications
 app.get("/notifications", async (req, res) => {
   try {
@@ -516,27 +572,50 @@ const createNotification = async (title, message, type, forAdmin = false) => {
       forAdmin
     });
     await notification.save();
+    console.log(`✅ Notification created: ${title} - ${message}`);
     return notification;
   } catch (error) {
     console.error("Error creating notification:", error);
   }
 };
 
-// Update the order creation endpoint
+// Create Order endpoint with notification
 app.post("/orders", async (req, res) => {
   try {
-    // ... existing order creation code ...
+    const { userID, products, totalAmount, shippingAddress, contactNumber } = req.body;
 
-    // Add notification for admin
+    // Validate required fields
+    if (!userID || !products || !totalAmount || !shippingAddress || !contactNumber) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Create new order
+    const order = new Order({
+      userID,
+      products,
+      totalAmount,
+      shippingAddress,
+      contactNumber,
+      status: "Paid" // Default status
+    });
+
+    const savedOrder = await order.save();
+
+    // Get user information for notification
+    const user = await User.findById(userID);
+    const customerName = user ? `${user.firstName} ${user.lastName}`.trim() : "Unknown Customer";
+
+    // Create notification for admin
     await createNotification(
-      "New Order Received",
-      `New order of $${req.body.totalAmount} from ${req.body.customerName}`,
+      "🛒 New Order Received",
+      `Order #${savedOrder._id.slice(-6)} from ${customerName} - $${totalAmount.toFixed(2)}`,
       "order",
       true
     );
 
-    res.status(201).json(order);
+    res.status(201).json(savedOrder);
   } catch (error) {
+    console.error("Error creating order:", error);
     res.status(500).json({ error: "Failed to create order" });
   }
 });
