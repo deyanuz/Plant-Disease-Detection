@@ -24,7 +24,7 @@ const BASE_URL = `http://${IpAddress}:9000`;
 const Dashboard = () => {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
-  const { setToken } = useContext(AuthContext);
+  const { setToken, userName } = useContext(AuthContext);
   const [stats, setStats] = useState({
     totalAdmins: 0,
     totalProducts: 0,
@@ -46,14 +46,35 @@ const Dashboard = () => {
     }
   };
 
+  // Fetch notifications count separately for real-time updates
+  const fetchNotificationsCount = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/notifications`);
+      const unreadCount = response.data.filter(notif => !notif.isRead).length;
+      setStats(prev => ({ ...prev, notifications: unreadCount }));
+    } catch (error) {
+      console.error("Error fetching notifications count:", error);
+    }
+  };
+
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await fetchDashboardStats();
+    await Promise.all([fetchDashboardStats(), fetchNotificationsCount()]);
     setRefreshing(false);
   }, []);
 
   useEffect(() => {
     fetchDashboardStats();
+    fetchNotificationsCount();
+  }, []);
+
+  // Set up interval to check for new notifications every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotificationsCount();
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   const analyticsCards = [
@@ -106,10 +127,12 @@ const Dashboard = () => {
             title="Dashboard"
             leftIcon="menu-outline"
             onLeftPress={() => navigation.openDrawer()}
+            rightIcon={stats.notifications > 0 ? "notifications-outline" : undefined}
+            onRightPress={stats.notifications > 0 ? () => navigation.navigate('Notifications') : undefined}
           />
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeText}>Welcome Back,</Text>
-            <Text style={styles.adminName}>Admin</Text>
+            <Text style={styles.adminName}>{userName || "Admin"}</Text>
           </View>
         </View>
 
@@ -132,6 +155,11 @@ const Dashboard = () => {
                   <Ionicons name={card.icon} size={24} color={COLORS.white} />
                   <Text style={styles.cardTitle}>{card.title}</Text>
                   <Text style={styles.cardValue}>{card.value}</Text>
+                  {card.title === "Notifications" && stats.notifications > 0 && (
+                    <View style={styles.notificationBadge}>
+                      <Text style={styles.notificationBadgeText}>{stats.notifications}</Text>
+                    </View>
+                  )}
                 </Card>
               ))}
             </View>
@@ -196,6 +224,24 @@ const styles = StyleSheet.create({
     fontSize: SIZES.large,
     color: COLORS.white,
     marginTop: SIZES.base / 2,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#e74c3c',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    ...FONTS.medium,
+    fontSize: SIZES.small,
+    color: COLORS.white,
+    fontWeight: 'bold',
   },
 });
 

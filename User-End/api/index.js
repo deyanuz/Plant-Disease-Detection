@@ -32,6 +32,9 @@ const app = express();
 const port = 8000;
 const hf = new HfInference("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");
 
+// JWT Secret Key - Use a consistent secret key
+const JWT_SECRET = "plant-disease-detection-secret-key-2024";
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
@@ -61,7 +64,7 @@ mongoose
   .then(() => console.log("connected"))
   .catch((e) => console.error(e.message));
 
-app.listen(port, () => console.log("Server runing on port 8000"));
+app.listen(port, "0.0.0.0", () => console.log("Server runing on port 8000"));
 
 //endpoints for user creation
 app.post("/register", async (req, res) => {
@@ -103,7 +106,7 @@ app.post("/register", async (req, res) => {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
       },
-      secretKey
+      JWT_SECRET
     );
     return res.status(200).json(token);
   } catch (error) {
@@ -137,7 +140,7 @@ app.post("/login", async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
       },
-      secretKey
+      JWT_SECRET
     );
     return res.status(200).json(token);
   } catch (error) {
@@ -745,3 +748,184 @@ app.post("/reset-password", async (req, res) => {
       .json({ error: "Failed to send password reset email" });
   }
 });
+
+// Test endpoint
+app.get("/test", (req, res) => {
+  res.json({ message: "API server is running!", timestamp: new Date().toISOString() });
+});
+
+// Update user profile endpoint
+app.put("/update-profile", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      console.log("No token provided");
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    console.log("Verifying token...");
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userID;
+    console.log("Token verified for user:", userId);
+
+    const { firstName, lastName, email, phone, dateOfBirth } = req.body;
+    console.log("Received profile data:", { firstName, lastName, email, phone, dateOfBirth });
+
+    // Validate required fields
+    if (!firstName || !email) {
+      console.log("Missing required fields");
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "firstName and email are required" 
+      });
+    }
+
+    // Check if email is already taken by another user
+    const existingUser = await User.findOne({ 
+      email: email, 
+      _id: { $ne: userId } 
+    });
+    
+    if (existingUser) {
+      console.log("Email already exists:", email);
+      return res.status(400).json({ 
+        error: "Email already exists",
+        message: "This email is already registered by another user" 
+      });
+    }
+
+    console.log("Updating user in database...");
+    // Update user in MongoDB
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        firstName,
+        lastName,
+        email,
+        phone: phone || "",
+        dateOfBirth: dateOfBirth || "",
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      console.log("User not found:", userId);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("User updated successfully:", updatedUser._id);
+
+    // Generate new token with updated information
+    const newToken = jwt.sign(
+      {
+        userID: updatedUser._id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        image: updatedUser.image,
+      },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    console.log("New token generated");
+
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        _id: updatedUser._id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        dateOfBirth: updatedUser.dateOfBirth,
+        image: updatedUser.image,
+      },
+      token: newToken,
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+// Upload profile image endpoint
+app.post("/upload-profile-image", upload.single("image"), async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      console.log("No token provided for image upload");
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    console.log("Verifying token for image upload...");
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userID;
+    console.log("Token verified for user:", userId);
+
+    if (!req.file) {
+      console.log("No image file provided");
+      return res.status(400).json({ error: "No image file provided" });
+    }
+
+    console.log("Processing image...");
+    // Process the image with sharp
+    const processedImageBuffer = await sharp(req.file.buffer)
+      .resize(300, 300, { fit: "cover" })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+
+    // Generate unique filename
+    const filename = `profile-${userId}-${Date.now()}.jpg`;
+    const uploadPath = path.join(__dirname, "uploads", filename);
+    console.log("Saving image to:", uploadPath);
+
+    // Save the processed image
+    await fs.promises.writeFile(uploadPath, processedImageBuffer);
+    console.log("Image saved successfully");
+
+    // Update user's image in database
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${filename}`;
+    console.log("Image URL:", imageUrl);
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { image: imageUrl },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      console.log("User not found for image update:", userId);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("User image updated successfully");
+
+    // Generate new token with updated image
+    const newToken = jwt.sign(
+      {
+        userID: updatedUser._id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        image: updatedUser.image,
+      },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    console.log("New token generated for image update");
+
+    res.json({
+      message: "Profile image updated successfully",
+      imageUrl: updatedUser.image,
+      token: newToken,
+    });
+  } catch (error) {
+    console.error("Error uploading profile image:", error);
+    res.status(500).json({ error: "Failed to upload profile image" });
+  }
+});
+
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));

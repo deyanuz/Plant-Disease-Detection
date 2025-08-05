@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: "#9d23bc",
+    backgroundColor: "#056608",
     borderRadius: 8,
   },
   tabText: {
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: "#c518f0",
+    backgroundColor: "#056608",
   },
   deleteButtonText: {
     color: "#fff",

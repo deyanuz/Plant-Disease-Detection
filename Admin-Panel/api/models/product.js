@@ -25,8 +25,8 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, "Category is required"],
     enum: {
-      values: ["Jute", "Tomato", "Strawberry", "Potato", "Other"],
-      message: "Invalid category. Must be one of: Jute, Tomato, Strawberry, Potato, Other"
+      values: ["Jute", "Corn", "Rice","Other"],
+      message: "Invalid category. Must be one of: Jute, Corn, Rice, Other"
     }
   },
   stock: {

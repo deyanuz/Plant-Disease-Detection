@@ -156,7 +156,7 @@ const LoginScreen = () => {
             >
               <Text
                 style={{
-                  color: "#9d23bc",
+                  color: "#056608",
                   fontSize: 14,
                   fontWeight: "500",
                 }}
@@ -168,7 +168,7 @@ const LoginScreen = () => {
               onPress={signIn}
               style={{
                 width: 200,
-                backgroundColor: "#9d23bc",
+                backgroundColor: "#056608",
                 padding: 15,
                 marginTop: 50,
                 marginLeft: "auto",
