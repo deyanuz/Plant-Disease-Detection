@@ -29,6 +29,16 @@ const UserScreen = () => {
     { id: 2, name: "Corn", icon: "🌽" },
     { id: 3, name: "Rice", icon: "🍚" },
   ];
+
+  // Helper function to get image URI from buffer data
+  const getImageUri = (product) => {
+    if (product.image && product.image.data) {
+      // If the product has buffer data, use the API endpoint to serve the image
+      return `http://${IpAddress}:8000/product-image/${product._id}`;
+    }
+    return null;
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -52,16 +62,19 @@ const UserScreen = () => {
 
     // Filter by search query
     if (searchQuery.trim()) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Filter by selected category
     if (selectedCategory) {
-      filtered = filtered.filter(product =>
-        product.category && product.category.toLowerCase() === selectedCategory.toLowerCase()
+      filtered = filtered.filter(
+        (product) =>
+          product.category &&
+          product.category.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
@@ -90,8 +103,8 @@ const UserScreen = () => {
             color="#888"
             style={styles.searchIcon}
           />
-          <TextInput 
-            placeholder="Search products..." 
+          <TextInput
+            placeholder="Search products..."
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -113,20 +126,24 @@ const UserScreen = () => {
         <Pressable
           style={[
             styles.categoryItem,
-            selectedCategory === null && styles.selectedCategory
+            selectedCategory === null && styles.selectedCategory,
           ]}
           onPress={() => setSelectedCategory(null)}
         >
-          <Text style={[
-            styles.categoryIcon,
-            selectedCategory === null && styles.selectedCategoryText
-          ]}>
+          <Text
+            style={[
+              styles.categoryIcon,
+              selectedCategory === null && styles.selectedCategoryText,
+            ]}
+          >
             🌾
           </Text>
-          <Text style={[
-            styles.categoryText,
-            selectedCategory === null && styles.selectedCategoryText
-          ]}>
+          <Text
+            style={[
+              styles.categoryText,
+              selectedCategory === null && styles.selectedCategoryText,
+            ]}
+          >
             All
           </Text>
         </Pressable>
@@ -135,20 +152,26 @@ const UserScreen = () => {
             key={category.id}
             style={[
               styles.categoryItem,
-              selectedCategory === category.name && styles.selectedCategory
+              selectedCategory === category.name && styles.selectedCategory,
             ]}
             onPress={() => setSelectedCategory(category.name)}
           >
-            <Text style={[
-              styles.categoryIcon,
-              selectedCategory === category.name && styles.selectedCategoryText
-            ]}>
+            <Text
+              style={[
+                styles.categoryIcon,
+                selectedCategory === category.name &&
+                  styles.selectedCategoryText,
+              ]}
+            >
               {category.icon}
             </Text>
-            <Text style={[
-              styles.categoryText,
-              selectedCategory === category.name && styles.selectedCategoryText
-            ]}>
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === category.name &&
+                  styles.selectedCategoryText,
+              ]}
+            >
               {category.name}
             </Text>
           </Pressable>
@@ -157,7 +180,9 @@ const UserScreen = () => {
 
       {/* Featured Products */}
       <Text style={styles.sectionTitle}>
-        {searchQuery || selectedCategory ? "Search Results" : "Featured Products"}
+        {searchQuery || selectedCategory
+          ? "Search Results"
+          : "Featured Products"}
         {filteredProducts.length > 0 && ` (${filteredProducts.length})`}
       </Text>
       <FlatList
@@ -171,10 +196,27 @@ const UserScreen = () => {
               navigation.navigate("ProductDetails", { product: item })
             }
           >
-            <Image
-              source={item.image ? { uri: item.image } : placeholder}
-              style={styles.productImage}
-            />
+            {item.image && item.image.data ? (
+              <Image
+                source={{ uri: getImageUri(item) }}
+                style={styles.productImage}
+                resizeMode="cover"
+                onError={() => {
+                  console.log("Image failed to load for product:", item._id);
+                }}
+                onLoad={() => {
+                  console.log(
+                    "Image loaded successfully for product:",
+                    item._id
+                  );
+                }}
+              />
+            ) : (
+              <Image
+                source={require("../fresh.jpg")}
+                style={styles.productImage}
+              />
+            )}
 
             <View style={styles.productInfo}>
               <Text style={styles.productName} numberOfLines={1}>
