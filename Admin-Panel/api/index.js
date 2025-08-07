@@ -99,14 +99,18 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "No image file provided" });
     }
 
-    // Create the image URL
-    const imageUrl = `http://${req.get("host")}/uploads/${req.file.filename}`;
+    // Read the file and convert to buffer
+    const imageBuffer = fs.readFileSync(req.file.path);
+    const contentType = req.file.mimetype;
 
-    console.log("Image uploaded successfully:", imageUrl);
+    // Delete the temporary file
+    fs.unlinkSync(req.file.path);
+
+    console.log("Image processed successfully");
     res.status(200).json({
       success: true,
-      imageUrl: imageUrl,
-      filename: req.file.filename,
+      imageBuffer: imageBuffer.toString("base64"),
+      contentType: contentType,
     });
   } catch (error) {
     console.error("Error uploading image:", error);
@@ -114,10 +118,34 @@ app.post("/upload-image", upload.single("image"), async (req, res) => {
   }
 });
 
+// Serve product image
+app.get("/product-image/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product || !product.image || !product.image.data) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    res.set("Content-Type", product.image.contentType);
+    res.send(product.image.data);
+  } catch (error) {
+    console.error("Error serving product image:", error);
+    res.status(500).json({ error: "Failed to serve image" });
+  }
+});
+
 // Create a Product
 app.post("/products", async (req, res) => {
   try {
-    const { name, description, price, category, stock } = req.body;
+    const {
+      name,
+      description,
+      price,
+      category,
+      stock,
+      imageBuffer,
+      contentType,
+    } = req.body;
 
     // Enhanced validation
     if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -137,13 +165,7 @@ app.post("/products", async (req, res) => {
     }
 
     // Validate against allowed categories
-    const allowedCategories = [
-      "Jute",
-      "Tomato",
-      "Strawberry",
-      "Potato",
-      "Other",
-    ];
+    const allowedCategories = ["Jute", "Corn", "Rice", "Other"];
     if (!allowedCategories.includes(category)) {
       return res.status(400).json({
         error:
@@ -152,6 +174,14 @@ app.post("/products", async (req, res) => {
       });
     }
 
+    // Validate image data
+    if (!imageBuffer || !contentType) {
+      return res.status(400).json({ error: "Image data is required" });
+    }
+
+    // Convert base64 string back to buffer
+    const imageData = Buffer.from(imageBuffer, "base64");
+
     // Create new product with sanitized data
     const newProduct = new Product({
       name: name.trim(),
@@ -159,7 +189,10 @@ app.post("/products", async (req, res) => {
       price: parseFloat(price),
       category: category.trim(),
       stock: parseInt(stock) || 0,
-      image: req.body.image || "https://via.placeholder.com/150", // Default image
+      image: {
+        data: imageData,
+        contentType: contentType,
+      },
     });
 
     console.log("Attempting to save product:", newProduct);
@@ -380,6 +413,8 @@ app.post("/admin/login", async (req, res) => {
 
     // Compare password using bcrypt
     const isPasswordValid = await bcrypt.compare(password, admin.password);
+    console.log(admin.password);
+    console.log(password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid credentials" });
     }

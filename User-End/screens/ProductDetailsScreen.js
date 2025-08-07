@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,48 +10,82 @@ import {
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../context/CartContext";
+import IpAddress from "../DeviceConfig";
+import axios from "axios";
 
 const ProductDetailsScreen = ({ route }) => {
   const { product } = route.params;
   const navigation = useNavigation();
   const { addToCart } = useCart();
   const [rating, setRating] = useState(4); // Default rating
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loadingRelated, setLoadingRelated] = useState(true);
 
-  const relatedProducts = [
-    {
-      id: 1,
-      name: "Rice Seeds",
-      price: "₹20.99",
-      image:
-        "https://media.istockphoto.com/id/1681725184/photo/rice.jpg?s=2048x2048&w=is&k=20&c=Ibpv_PUMmFVmi1yqeGt4D3hK4hg0Jus4uczuCVu0cNY=",
-    },
-    {
-      id: 2,
-      name: "Jute Seeds",
-      price: "₹13.99",
-      image:
-        "https://media.istockphoto.com/id/1433096076/photo/soybean-grain-in-a-hands-of-successful-farmer.jpg?s=2048x2048&w=is&k=20&c=8XLqWLjlZA4sTgEyKEEVb9-Uq9O4eBG4zG4Iuru2EBg=",
-    },
-    {
-      id: 3,
-      name: "Strawberry Seeds",
-      price: "₹24.99",
-      image:
-        "https://media.istockphoto.com/id/1157946861/photo/red-berry-strawberry-isolated.jpg?s=2048x2048&w=is&k=20&c=1E-5CHWTvhWJPt7M9TfSYUwZE3_WRvmLobGDRlHRQ-U=",
-    },
-    {
-      id: 4,
-      name: "Tomato Seeds",
-      price: "₹28.99",
-      image:
-        "https://media.istockphoto.com/id/1320269431/photo/tomato-seed-collection.jpg?s=1024x1024&w=is&k=20&c=4uSQMx_1Q7a4MA4J5aq3ECOpKOX9sjqsbFuztK1MK38=",
-    },
-  ];
+  // Helper function to get image URI from buffer data
+  const getImageUri = (product) => {
+    if (product.image && product.image.data) {
+      // If the product has buffer data, use the API endpoint to serve the image
+      return `http://${IpAddress}:8000/product-image/${product._id}`;
+    }
+    return null;
+  };
+
+  // Fetch related products of the same category
+  useEffect(() => {
+    const fetchRelatedProducts = async () => {
+      try {
+        setLoadingRelated(true);
+        const response = await axios.get(`http://${IpAddress}:8000/products`);
+        const allProducts = response.data;
+
+        // Filter products of the same category, excluding the current product
+        const sameCategoryProducts = allProducts.filter(
+          (p) => p.category === product.category && p._id !== product._id
+        );
+
+        // Limit to 4 related products
+        const limitedRelatedProducts = sameCategoryProducts.slice(0, 4);
+
+        setRelatedProducts(limitedRelatedProducts);
+      } catch (error) {
+        console.error("Error fetching related products:", error);
+        setRelatedProducts([]);
+      } finally {
+        setLoadingRelated(false);
+      }
+    };
+
+    if (product && product.category) {
+      fetchRelatedProducts();
+    }
+  }, [product]);
+
+  const handleRelatedProductPress = (relatedProduct) => {
+    navigation.replace("ProductDetails", { product: relatedProduct });
+  };
 
   return (
     <View style={styles.container}>
       {/* Product Image */}
-      <Image source={{ uri: product.image }} style={styles.productImage} />
+      {product.image && product.image.data ? (
+        <Image
+          source={{ uri: getImageUri(product) }}
+          style={styles.productImage}
+          resizeMode="cover"
+          onError={() => {
+            console.log("Image failed to load for product:", product._id);
+          }}
+          onLoad={() => {
+            console.log("Image loaded successfully for product:", product._id);
+          }}
+        />
+      ) : (
+        <Image
+          source={{ uri: product.image }}
+          style={styles.productImage}
+          resizeMode="cover"
+        />
+      )}
 
       {/* Product Info */}
       <View style={styles.infoContainer}>
@@ -99,24 +133,56 @@ const ProductDetailsScreen = ({ route }) => {
       </View>
 
       {/* Related Products */}
-      <Text style={styles.sectionTitle}>Related Products</Text>
-      <FlatList
-        data={relatedProducts}
-        horizontal
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.relatedProductCard}>
-            <Image
-              source={{ uri: item.image }}
-              style={styles.relatedProductImage}
-            />
-            <View style={styles.overlay}>
-              <Text style={styles.overlayText}>{item.name}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.relatedProductsContainer}
-      />
+      <Text style={styles.sectionTitle}>
+        Related Products ({relatedProducts.length})
+      </Text>
+      {loadingRelated ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading related products...</Text>
+        </View>
+      ) : relatedProducts.length > 0 ? (
+        <FlatList
+          data={relatedProducts}
+          horizontal
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.relatedProductCard}
+              onPress={() => handleRelatedProductPress(item)}
+            >
+              {item.image && item.image.data ? (
+                <Image
+                  source={{ uri: getImageUri(item) }}
+                  style={styles.relatedProductImage}
+                  resizeMode="cover"
+                  onError={() => {
+                    console.log(
+                      "Related product image failed to load:",
+                      item._id
+                    );
+                  }}
+                />
+              ) : (
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.relatedProductImage}
+                  resizeMode="cover"
+                />
+              )}
+              <View style={styles.overlay}>
+                <Text style={styles.overlayText}>{item.name}</Text>
+                <Text style={styles.overlayPrice}>${item.price}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item) => item._id.toString()}
+          contentContainerStyle={styles.relatedProductsContainer}
+          showsHorizontalScrollIndicator={false}
+        />
+      ) : (
+        <View style={styles.noRelatedContainer}>
+          <Text style={styles.noRelatedText}>No related products found</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -191,6 +257,23 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     marginLeft: 15,
   },
+  loadingContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  noRelatedContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  noRelatedText: {
+    fontSize: 14,
+    color: "#666",
+    fontStyle: "italic",
+  },
   relatedProductsContainer: {
     paddingHorizontal: 10,
   },
@@ -214,14 +297,22 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    paddingVertical: 5,
-    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    paddingVertical: 8,
+    paddingHorizontal: 5,
   },
   overlayText: {
     color: "#FFF",
-    fontSize: 12,
+    fontSize: 11,
     textAlign: "center",
+    fontWeight: "bold",
+    marginBottom: 2,
+  },
+  overlayPrice: {
+    color: "#FFF",
+    fontSize: 10,
+    textAlign: "center",
+    opacity: 0.9,
   },
 });
 

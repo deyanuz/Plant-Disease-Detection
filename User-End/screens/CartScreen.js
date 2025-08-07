@@ -33,6 +33,15 @@ const CartScreen = () => {
   const [shippingAddress, setShippingAddress] = useState("");
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
+  // Helper function to get image URI from buffer data
+  const getImageUri = (item) => {
+    if (item.image && item.image.data) {
+      // If the item has buffer data, use the API endpoint to serve the image
+      return `http://${IpAddress}:8000/product-image/${item.id}`;
+    }
+    return null;
+  };
+
   const calculateItemTotal = (price, quantity) => {
     const numericPrice =
       typeof price === "number"
@@ -318,10 +327,24 @@ const CartScreen = () => {
 
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
-      <Image
-        source={item.image ? { uri: item.image } : placeholder}
-        style={styles.productImage}
-      />
+      {item.image && item.image.data ? (
+        <Image
+          source={{ uri: getImageUri(item) }}
+          style={styles.productImage}
+          resizeMode="cover"
+          onError={() => {
+            console.log("Image failed to load for cart item:", item.id);
+          }}
+          onLoad={() => {
+            console.log("Image loaded successfully for cart item:", item.id);
+          }}
+        />
+      ) : (
+        <Image
+          source={item.image ? { uri: item.image } : placeholder}
+          style={styles.productImage}
+        />
+      )}
 
       <View style={styles.itemDetails}>
         <View style={styles.nameAndRemove}>

@@ -203,7 +203,7 @@ app.post("/detect", upload.single("image"), async (req, res) => {
 
     // 3. Disease classifier: resize to 256x256
     const resizedBufferDisease = await sharp(imageBuffer)
-      .resize(256, 256)
+      .resize(224, 224)
       .toBuffer();
     decodedImageDisease = tf.node.decodeImage(resizedBufferDisease, 3);
     inputTensorDisease = decodedImageDisease.expandDims(0).toFloat();
@@ -490,6 +490,23 @@ app.get("/products", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch products" });
   }
 });
+
+// Serve product image
+app.get("/product-image/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product || !product.image || !product.image.data) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    res.set("Content-Type", product.image.contentType);
+    res.send(product.image.data);
+  } catch (error) {
+    console.error("Error serving product image:", error);
+    res.status(500).json({ error: "Failed to serve image" });
+  }
+});
+
 //get single product by id
 app.get("/products/:id", async (req, res) => {
   try {
