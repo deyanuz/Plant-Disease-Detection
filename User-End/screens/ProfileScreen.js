@@ -18,6 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import IpAddress from "../DeviceConfig";
 import { jwtDecode } from "jwt-decode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 const ProfileScreen = () => {
   const {
@@ -255,91 +256,86 @@ const ProfileScreen = () => {
 
       console.log("Request body:", requestBody);
 
-      const response = await fetch(`${IpAddress}:8000/update-profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
+      const response = await axios.put(
+        `http://${IpAddress}:8000/update-profile`,
+        requestBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       console.log("Response status:", response.status);
       console.log("Response headers:", response.headers);
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Profile update success:", data);
+      console.log("Profile update success:", response.data);
 
-        // Update local state
-        const fullName =
-          `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
-        setUserName(fullName);
-        setUserEmail(formData.email.trim().toLowerCase());
-        setOriginalData({
-          ...formData,
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim().toLowerCase(),
-          phone: formData.phone.trim(),
-          dateOfBirth: formData.dateOfBirth.trim(),
-        });
-        setIsEditing(false);
+      // Update local state
+      const fullName =
+        `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
+      setUserName(fullName);
+      setUserEmail(formData.email.trim().toLowerCase());
+      setOriginalData({
+        ...formData,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        dateOfBirth: formData.dateOfBirth.trim(),
+      });
+      setIsEditing(false);
 
-        // Update token if provided
-        if (data.token) {
-          await updateToken(data.token);
-        }
-
-        Alert.alert("Success", "Profile updated successfully!");
-      } else {
-        const errorText = await response.text();
-        console.error("Profile update error response:", errorText);
-        let errorMessage = "Failed to update profile";
-        let errorTitle = "Error";
-
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorData.error || errorMessage;
-
-          // Handle specific error cases
-          if (errorData.error === "Email already exists") {
-            errorTitle = "Email Already Exists";
-            errorMessage =
-              "This email is already registered by another user. Please use a different email address.";
-          } else if (errorData.error === "Invalid email format") {
-            errorTitle = "Invalid Email";
-            errorMessage = "Please enter a valid email address.";
-          } else if (errorData.error === "Invalid token") {
-            errorTitle = "Authentication Error";
-            errorMessage = "Your session has expired. Please log in again.";
-          }
-        } catch (e) {
-          console.error("Failed to parse error response:", e);
-        }
-
-        Alert.alert(errorTitle, errorMessage);
+      // Update token if provided
+      if (response.data.token) {
+        await updateToken(response.data.token);
       }
+
+      Alert.alert("Success", "Profile updated successfully!");
     } catch (error) {
       console.error("Profile update exception:", error);
 
-      // Handle specific network errors
-      if (error.message.includes("Network request failed")) {
-        Alert.alert(
-          "Connection Error",
-          "Unable to connect to the server. Please check your internet connection and try again."
-        );
-      } else if (error.message.includes("timeout")) {
-        Alert.alert(
-          "Timeout Error",
-          "The request timed out. Please try again."
-        );
+      let errorMessage = "Failed to update profile";
+      let errorTitle = "Error";
+
+      // Handle axios error responses
+      if (error.response) {
+        // Server responded with error status
+        const errorData = error.response.data;
+        console.error("Profile update error response:", errorData);
+
+        errorMessage = errorData.message || errorData.error || errorMessage;
+
+        // Handle specific error cases
+        if (errorData.error === "Email already exists") {
+          errorTitle = "Email Already Exists";
+          errorMessage =
+            "This email is already registered by another user. Please use a different email address.";
+        } else if (errorData.error === "Invalid email format") {
+          errorTitle = "Invalid Email";
+          errorMessage = "Please enter a valid email address.";
+        } else if (errorData.error === "Invalid token") {
+          errorTitle = "Authentication Error";
+          errorMessage = "Your session has expired. Please log in again.";
+        }
+      } else if (error.request) {
+        // Network error
+        errorTitle = "Connection Error";
+        errorMessage =
+          "Unable to connect to the server. Please check your internet connection and try again.";
       } else {
-        Alert.alert(
-          "Error",
-          "Failed to update profile. Please check your connection and try again."
-        );
+        // Other errors
+        if (error.message.includes("timeout")) {
+          errorTitle = "Timeout Error";
+          errorMessage = "The request timed out. Please try again.";
+        } else {
+          errorMessage =
+            "Failed to update profile. Please check your connection and try again.";
+        }
       }
+
+      Alert.alert(errorTitle, errorMessage);
     } finally {
       setIsLoading(false);
     }
