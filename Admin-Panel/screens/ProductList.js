@@ -172,7 +172,7 @@ const ProductList = ({ navigation }) => {
         <View style={styles.productInfo}>
           <Text style={styles.productName}>{item.name}</Text>
           <Text style={styles.productDetails}>
-            Price: ${item.price.toFixed(2)}
+            Price: {item.price.toFixed(2)} ৳
           </Text>
           <Text style={styles.productDetails}>Category: {item.category}</Text>
           <Text style={styles.productDetails}>Stock: {item.stock}</Text>
