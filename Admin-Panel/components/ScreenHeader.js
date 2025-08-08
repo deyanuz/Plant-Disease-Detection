@@ -1,21 +1,31 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { COLORS, SIZES, FONTS } from '../styles/theme';
+import { COLORS, SIZES, FONTS } from "../styles/theme";
 
-const ScreenHeader = ({ title, leftIcon, rightIcon, onLeftPress, onRightPress }) => {
+const ScreenHeader = ({
+  title,
+  leftIcon,
+  rightIcon,
+  onLeftPress,
+  onRightPress,
+}) => {
   return (
     <View style={styles.header}>
-      {leftIcon && (
+      {leftIcon ? (
         <TouchableOpacity style={styles.iconButton} onPress={onLeftPress}>
           <Ionicons name={leftIcon} size={28} color={COLORS.white} />
         </TouchableOpacity>
+      ) : (
+        <View style={styles.iconSpacer} />
       )}
       <Text style={styles.title}>{title}</Text>
-      {rightIcon && (
+      {rightIcon ? (
         <TouchableOpacity style={styles.iconButton} onPress={onRightPress}>
           <Ionicons name={rightIcon} size={28} color={COLORS.white} />
         </TouchableOpacity>
+      ) : (
+        <View style={styles.iconSpacer} />
       )}
     </View>
   );
@@ -23,24 +33,28 @@ const ScreenHeader = ({ title, leftIcon, rightIcon, onLeftPress, onRightPress })
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SIZES.padding,
     paddingVertical: SIZES.padding,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   title: {
     ...FONTS.bold,
     fontSize: SIZES.extraLarge,
     color: COLORS.white,
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
   },
   iconButton: {
     padding: SIZES.base,
     width: 44,
   },
+  iconSpacer: {
+    padding: SIZES.base,
+    width: 44,
+  },
 });
 
-export default ScreenHeader; 
+export default ScreenHeader;

@@ -1,3 +1,4 @@
+require("dotenv").config({ path: "../../.env" });
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -14,14 +15,13 @@ const Detection = require("./models/detection");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const app = express();
-const port = 9000;
+const port = process.env.ADMIN_PORT || 9000;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
 const router = express.Router();
-const JWT_SECRET =
-  "af8e80f3ea01d3bfe178454c3ffa0e38f93cd977a1cfc66f0e1535a36d201384"; // Your secret key
+const JWT_SECRET = process.env.ADMIN_JWT_SECRET; // Your secret key
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, "uploads");
@@ -72,9 +72,7 @@ const ORDER_STATUSES = [
 
 // Connect to MongoDB
 mongoose
-  .connect(
-    "mongodb+srv://khansumzunofficial:1234@plant-disease.opjv1.mongodb.net/?retryWrites=true&w=majority&appName=plant-disease"
-  )
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((error) => console.error("MongoDB connection error:", error));
 // Middleware for authenticating JWT

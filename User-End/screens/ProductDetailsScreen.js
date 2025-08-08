@@ -90,7 +90,7 @@ const ProductDetailsScreen = ({ route }) => {
       {/* Product Info */}
       <View style={styles.infoContainer}>
         <Text style={styles.productName}>{product.name}</Text>
-        <Text style={styles.productPrice}>{product.price}</Text>
+        <Text style={styles.productPrice}>{product.price} ৳</Text>
 
         {/* Rating Section */}
         <View style={styles.ratingContainer}>
@@ -170,7 +170,7 @@ const ProductDetailsScreen = ({ route }) => {
               )}
               <View style={styles.overlay}>
                 <Text style={styles.overlayText}>{item.name}</Text>
-                <Text style={styles.overlayPrice}>${item.price}</Text>
+                <Text style={styles.overlayPrice}>{item.price} ৳</Text>
               </View>
             </TouchableOpacity>
           )}

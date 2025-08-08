@@ -1,3 +1,4 @@
+require("dotenv").config({ path: "../../.env" });
 // Change from ES module imports to CommonJS requires
 const { initializeApp } = require("firebase/app");
 const { getAuth } = require("firebase/auth");
@@ -8,13 +9,13 @@ const { getAuth } = require("firebase/auth");
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDdGFXIK6B_UJrt25XQvVDlaFln3RI2Fc0",
-  authDomain: "plant-disease-detection-22117.firebaseapp.com",
-  projectId: "plant-disease-detection-22117",
-  storageBucket: "plant-disease-detection-22117.firebasestorage.app",
-  messagingSenderId: "284341709761",
-  appId: "1:284341709761:web:fe6085083f535237e0dd40",
-  measurementId: "G-PZSGLGMDKH",
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
