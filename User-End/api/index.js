@@ -793,6 +793,7 @@ app.put("/update-profile", async (req, res) => {
       console.log("JWT verification failed:", jwtError.message);
       return res.status(401).json({ error: "Invalid token" });
     }
+    console.log("Decoded token:", decoded);
 
     const userId = decoded.userID;
     console.log("Token verified for user:", userId);
