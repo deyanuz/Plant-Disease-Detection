@@ -231,7 +231,7 @@ const UserScreen = () => {
                 }}
               >
                 <View>
-                  <Text style={styles.productPrice}>${item.price}/Kg</Text>
+                  <Text style={styles.productPrice}>{item.price}৳/Kg</Text>
                   <Text style={styles.productDescription} numberOfLines={1}>
                     {item.description}
                   </Text>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  SafeAreaView,
   Text,
   FlatList,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   View,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import ScreenHeader from "../components/ScreenHeader";
@@ -23,7 +23,7 @@ const BASE_URL = `http://${IpAddress}:9000`;
 const ORDER_STATUSES = [
   "Paid",
   "Processing",
-  "Shipped", 
+  "Shipped",
   "Delivered",
   "Cancelled",
 ];
@@ -129,7 +129,8 @@ const ManageOrders = ({ navigation }) => {
           <Text style={styles.productDetails}>Products:</Text>
           {item.products.map((product, index) => (
             <Text key={index} style={styles.productText}>
-              {product.name} - Qty: {product.quantity} - Price: ${product.price.toFixed(2)}
+              {product.name} - Qty: {product.quantity} - Price: $
+              {product.price.toFixed(2)}
             </Text>
           ))}
         </View>
@@ -146,9 +147,7 @@ const ManageOrders = ({ navigation }) => {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalHeader}>
-            Update Order Status
-          </Text>
+          <Text style={styles.modalHeader}>Update Order Status</Text>
           <Text style={styles.modalOrderId}>
             Order #{selectedOrder?._id.slice(-6)}
           </Text>
@@ -161,8 +160,7 @@ const ManageOrders = ({ navigation }) => {
                   styles.statusButton,
                   {
                     backgroundColor: getStatusColor(status),
-                    opacity:
-                      selectedOrder?.status === status ? 0.6 : 1,
+                    opacity: selectedOrder?.status === status ? 0.6 : 1,
                   },
                 ]}
                 onPress={() => handleUpdateStatus(selectedOrder._id, status)}
@@ -243,9 +241,9 @@ const styles = StyleSheet.create({
     padding: SIZES.padding,
   },
   orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SIZES.margin,
   },
   orderId: {

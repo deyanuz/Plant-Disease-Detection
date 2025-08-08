@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -13,6 +12,8 @@ import {
   ScrollView,
   Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
@@ -198,157 +199,170 @@ const AddProduct = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScreenHeader
-        title="Add Product"
-        leftIcon="menu-outline"
-        onLeftPress={() => navigation.openDrawer()}
-      />
-      <View style={styles.content}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>Add New Product</Text>
+    <LinearGradient
+      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader
+          title="Add Product"
+          leftIcon="menu-outline"
+          onLeftPress={() => navigation.openDrawer()}
+        />
+        <View style={styles.content}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.formContainer}>
+              <Text style={styles.formTitle}>Add New Product</Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Product Name"
-              value={name}
-              onChangeText={setName}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Description"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Price"
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-            />
+              <TextInput
+                style={styles.input}
+                placeholder="Product Name"
+                value={name}
+                onChangeText={setName}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Description"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Price"
+                value={price}
+                onChangeText={setPrice}
+                keyboardType="numeric"
+              />
 
-            {/* Category Dropdown */}
-            <View style={styles.dropdownContainer}>
-              <TouchableOpacity
-                style={styles.dropdownButton}
-                onPress={() =>
-                  setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
-                }
-              >
-                <Text
-                  style={[
-                    styles.dropdownButtonText,
-                    !category && styles.placeholderText,
-                  ]}
+              {/* Category Dropdown */}
+              <View style={styles.dropdownContainer}>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() =>
+                    setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
+                  }
                 >
-                  {category || "Select Category"}
-                </Text>
-                <Ionicons
-                  name={isCategoryDropdownOpen ? "chevron-up" : "chevron-down"}
-                  size={20}
-                  color={COLORS.gray}
-                />
-              </TouchableOpacity>
-
-              {isCategoryDropdownOpen && (
-                <View style={styles.dropdownList}>
-                  {CATEGORIES.map((cat) => (
-                    <TouchableOpacity
-                      key={cat}
-                      style={[
-                        styles.dropdownItem,
-                        category === cat && styles.selectedDropdownItem,
-                      ]}
-                      onPress={() => selectCategory(cat)}
-                    >
-                      <Text
-                        style={[
-                          styles.dropdownItemText,
-                          category === cat && styles.selectedDropdownItemText,
-                        ]}
-                      >
-                        {cat}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Stock"
-              value={stock}
-              onChangeText={setStock}
-              keyboardType="numeric"
-            />
-
-            {/* Image Picker Section */}
-            <View style={styles.imageSection}>
-              <Text style={styles.imageLabel}>Product Image</Text>
-              <TouchableOpacity
-                style={styles.imagePickerButton}
-                onPress={pickImage}
-              >
-                <Ionicons
-                  name="camera-outline"
-                  size={24}
-                  color={COLORS.primary}
-                />
-                <Text style={styles.imagePickerText}>
-                  {imageBuffer ? "Change Image" : "Pick an Image"}
-                </Text>
-              </TouchableOpacity>
-              {image && image.uri && (
-                <View style={styles.imagePreviewContainer}>
-                  <Image
-                    source={{ uri: image.uri }}
-                    style={styles.imagePreview}
-                  />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => {
-                      setImage(null);
-                      setImageBuffer(null);
-                      setContentType("");
-                    }}
+                  <Text
+                    style={[
+                      styles.dropdownButtonText,
+                      !category && styles.placeholderText,
+                    ]}
                   >
-                    <Ionicons
-                      name="close-circle"
-                      size={24}
-                      color={COLORS.error}
-                    />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+                    {category || "Select Category"}
+                  </Text>
+                  <Ionicons
+                    name={
+                      isCategoryDropdownOpen ? "chevron-up" : "chevron-down"
+                    }
+                    size={20}
+                    color={COLORS.gray}
+                  />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.addButton, isSubmitting && styles.disabledButton]}
-              onPress={handleAddProduct}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color={COLORS.white} />
-              ) : (
-                <Text style={styles.buttonText}>Add Product</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </View>
-      {imageBuffer && <View style={{ margin: 25 }} />}
-    </SafeAreaView>
+                {isCategoryDropdownOpen && (
+                  <View style={styles.dropdownList}>
+                    {CATEGORIES.map((cat) => (
+                      <TouchableOpacity
+                        key={cat}
+                        style={[
+                          styles.dropdownItem,
+                          category === cat && styles.selectedDropdownItem,
+                        ]}
+                        onPress={() => selectCategory(cat)}
+                      >
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            category === cat && styles.selectedDropdownItemText,
+                          ]}
+                        >
+                          {cat}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              <TextInput
+                style={styles.input}
+                placeholder="Stock"
+                value={stock}
+                onChangeText={setStock}
+                keyboardType="numeric"
+              />
+
+              {/* Image Picker Section */}
+              <View style={styles.imageSection}>
+                <Text style={styles.imageLabel}>Product Image</Text>
+                <TouchableOpacity
+                  style={styles.imagePickerButton}
+                  onPress={pickImage}
+                >
+                  <Ionicons
+                    name="camera-outline"
+                    size={24}
+                    color={COLORS.primary}
+                  />
+                  <Text style={styles.imagePickerText}>
+                    {imageBuffer ? "Change Image" : "Pick an Image"}
+                  </Text>
+                </TouchableOpacity>
+                {image && image.uri && (
+                  <View style={styles.imagePreviewContainer}>
+                    <Image
+                      source={{ uri: image.uri }}
+                      style={styles.imagePreview}
+                    />
+                    <TouchableOpacity
+                      style={styles.removeImageButton}
+                      onPress={() => {
+                        setImage(null);
+                        setImageBuffer(null);
+                        setContentType("");
+                      }}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={24}
+                        color={COLORS.error}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.addButton,
+                  isSubmitting && styles.disabledButton,
+                ]}
+                onPress={handleAddProduct}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Text style={styles.buttonText}>Add Product</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+        {imageBuffer && <View style={{ margin: 25 }} />}
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "transparent",
   },
   safeArea: {
     flex: 1,
@@ -459,7 +473,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.font,
     fontWeight: "bold",
     marginBottom: SIZES.base,
-    color: COLORS.blak,
+    color: COLORS.text,
   },
   imagePickerButton: {
     flexDirection: "row",

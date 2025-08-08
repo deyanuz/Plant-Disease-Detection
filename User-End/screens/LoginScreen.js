@@ -16,7 +16,7 @@ import axios from "axios";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import IpAddress from "../DeviceConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AuthContext, FIREBASE_AUTH } from "../auth/AuthContext";
+import { AuthContext } from "../auth/AuthContext";
 
 const LoginScreen = () => {
   // handling navigation

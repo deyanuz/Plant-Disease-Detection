@@ -1,17 +1,16 @@
+require("dotenv").config({ path: "../../.env" });
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const tf = require("@tensorflow/tfjs-node");
-const { FIREBASE_AUTH } = require("../auth/FirebaseConfig");
+const { FIREBASE_AUTH } = require("./firebaseConfig");
 const User = require("./models/user");
 const Detection = require("./models/detection");
 const crypto = require("crypto");
 const Product = require("./models/product");
 const { HfInference } = require("@huggingface/inference");
 const Order = require("./models/order");
-const stripe = require("stripe")(
-  "sk_test_51RrapwF3HAo508cL8jqApLDRKeGo5j7PWkpyvPGiod6QiHUuHuSc5XYi2ESqQd5diyb7zSulAPMgdoh7ATVwyDvg002dMXj9Xr"
-);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require("multer");
 const path = require("path");
@@ -29,11 +28,11 @@ const { default: axios } = require("axios");
 const ChatHistory = require("./models/chatHistory");
 
 const app = express();
-const port = 8000;
-const hf = new HfInference("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");
+const port = process.env.USER_PORT || 8000;
+const hf = new HfInference(process.env.HUGGING_FACE_API_KEY);
 
 // JWT Secret Key - Use a consistent secret key
-const JWT_SECRET = "plant-disease-detection-secret-key-2024";
+const JWT_SECRET = process.env.USER_JWT_SECRET;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -58,9 +57,7 @@ let leafClf;
 })();
 
 mongoose
-  .connect(
-    "mongodb+srv://khansumzunofficial:1234@plant-disease.opjv1.mongodb.net/?retryWrites=true&w=majority&appName=plant-disease"
-  )
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("connected"))
   .catch((e) => console.error(e.message));
 
@@ -576,9 +573,7 @@ app.post("/chatbot", async (req, res) => {
     const { GoogleGenerativeAI } = require("@google/generative-ai");
 
     // Initialize Gemini (you'll need to set your API key)
-    const genAI = new GoogleGenerativeAI(
-      "AIzaSyBH6s86iQs4RMWQHTwT4UGa-eSBD8hDz3I"
-    );
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
 
     // Get the generative model
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });

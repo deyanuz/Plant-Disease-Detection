@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  SafeAreaView,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -14,6 +13,8 @@ import {
   TextInput,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import axios from "axios";
 import IpAddress from "../DeviceConfig";
 import { COLORS, SIZES, FONTS, SHADOWS } from "../styles/theme";
@@ -196,131 +197,139 @@ const ProductList = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScreenHeader
-        title="Product List"
-        leftIcon="menu-outline"
-        onLeftPress={() => navigation.openDrawer()}
-        rightIcon="refresh-outline"
-        onRightPress={fetchProducts}
-      />
+    <LinearGradient
+      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader
+          title="Product List"
+          leftIcon="menu-outline"
+          onLeftPress={() => navigation.openDrawer()}
+          rightIcon="refresh-outline"
+          onRightPress={fetchProducts}
+        />
 
-      <View style={styles.content}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>All Products</Text>
-          <Text style={styles.productCount}>{products.length} products</Text>
-        </View>
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.primary} />
-            <Text style={styles.loadingText}>Loading products...</Text>
+        <View style={styles.content}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerTitle}>All Products</Text>
+            <Text style={styles.productCount}>{products.length} products</Text>
           </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Ionicons
-              name="alert-circle-outline"
-              size={60}
-              color={COLORS.error}
-            />
-            <Text style={styles.errorTitle}>Error Loading Products</Text>
-            <Text style={styles.errorSubtitle}>
-              Please check your connection and try again
-            </Text>
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={fetchProducts}
-            >
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            data={products}
-            renderItem={renderProductCard}
-            keyExtractor={(item) => item._id}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={renderEmptyState}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            refreshControl={
-              <RefreshControl refreshing={loading} onRefresh={onRefresh} />
-            }
-          />
-        )}
-      </View>
 
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Update Product</Text>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <TextInput
-                style={styles.input}
-                placeholder="Product Name"
-                value={updatedName}
-                onChangeText={setUpdatedName}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+              <Text style={styles.loadingText}>Loading products...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Ionicons
+                name="alert-circle-outline"
+                size={60}
+                color={COLORS.error}
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Description"
-                value={updatedDescription}
-                onChangeText={setUpdatedDescription}
-                multiline
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Price"
-                value={updatedPrice}
-                onChangeText={setUpdatedPrice}
-                keyboardType="numeric"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Category"
-                value={updatedCategory}
-                onChangeText={setUpdatedCategory}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Stock"
-                value={updatedStock}
-                onChangeText={setUpdatedStock}
-                keyboardType="numeric"
-              />
-            </ScrollView>
-
-            <View style={styles.modalButtons}>
+              <Text style={styles.errorTitle}>Error Loading Products</Text>
+              <Text style={styles.errorSubtitle}>
+                Please check your connection and try again
+              </Text>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
+                style={styles.retryButton}
+                onPress={fetchProducts}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={saveUpdatedProduct}
-              >
-                <Text style={styles.modalButtonText}>Save</Text>
+                <Text style={styles.retryButtonText}>Retry</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          ) : (
+            <FlatList
+              data={products}
+              renderItem={renderProductCard}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={styles.listContainer}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={renderEmptyState}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              refreshControl={
+                <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+              }
+            />
+          )}
         </View>
-      </Modal>
-    </SafeAreaView>
+
+        <Modal
+          visible={isModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalHeader}>Update Product</Text>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Product Name"
+                  value={updatedName}
+                  onChangeText={setUpdatedName}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Description"
+                  value={updatedDescription}
+                  onChangeText={setUpdatedDescription}
+                  multiline
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Price"
+                  value={updatedPrice}
+                  onChangeText={setUpdatedPrice}
+                  keyboardType="numeric"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Category"
+                  value={updatedCategory}
+                  onChangeText={setUpdatedCategory}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Stock"
+                  value={updatedStock}
+                  onChangeText={setUpdatedStock}
+                  keyboardType="numeric"
+                />
+              </ScrollView>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={saveUpdatedProduct}
+                >
+                  <Text style={styles.modalButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "transparent",
   },
   content: {
     flex: 1,
@@ -339,7 +348,7 @@ const styles = StyleSheet.create({
   },
   productCount: {
     fontSize: SIZES.font,
-    color: COLORS.gray,
+    color: COLORS.text,
   },
   listContainer: {
     paddingBottom: 20,
@@ -351,7 +360,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...FONTS.body3,
-    color: COLORS.gray,
+    color: COLORS.text,
     marginTop: 16,
   },
   errorContainer: {

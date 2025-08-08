@@ -1,10 +1,11 @@
+require("dotenv").config({ path: "../../.env" });
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Admin = require("./models/admins"); // Admin model
 
 const router = express.Router();
-const JWT_SECRET = "af8e80f3ea01d3bfe178454c3ffa0e38f93cd977a1cfc66f0e1535a36d201384"; // Your secret key
+const JWT_SECRET = process.env.ADMIN_JWT_SECRET; // Your secret key
 
 // Admin Login
 router.post("/login", async (req, res) => {
@@ -38,7 +39,9 @@ router.get("/dashboard", (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    res.status(200).json({ message: "Welcome to the Admin Dashboard", admin: decoded });
+    res
+      .status(200)
+      .json({ message: "Welcome to the Admin Dashboard", admin: decoded });
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });
   }
