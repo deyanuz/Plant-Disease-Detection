@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -32,9 +33,12 @@ const SelectImageScreen = () => {
   return (
     <>
       <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-        <View style={{ marginHorizontal: 10 }}>
-          <Ionicons name="arrow-back" size={25} color="black" />
-        </View>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={25} color="#013220" />
+        </TouchableOpacity>
 
         <View style={{ marginHorizontal: 10, marginVertical: 15 }}>
           <Text style={{ fontSize: 20, fontWeight: "bold" }}>
@@ -115,7 +119,7 @@ const SelectImageScreen = () => {
         style={{
           color: "white",
           padding: 15,
-          backgroundColor: "#a71ec9",
+          backgroundColor: "#013220",
           marginTop: "auto",
           marginBottom: 30,
           padding: 12,
@@ -140,4 +144,9 @@ const SelectImageScreen = () => {
 
 export default SelectImageScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  backButton: {
+    marginTop: 10,
+    marginLeft: 10,
+  },
+});

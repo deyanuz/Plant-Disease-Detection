@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   RefreshControl,
@@ -11,11 +10,12 @@ import {
   Alert,
   Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { COLORS, SIZES, FONTS } from '../styles/theme';
-import ScreenHeader from '../components/ScreenHeader';
-import IpAddress from '../DeviceConfig';
+import { COLORS, SIZES, FONTS } from "../styles/theme";
+import ScreenHeader from "../components/ScreenHeader";
+import IpAddress from "../DeviceConfig";
 
 const UserList = ({ navigation }) => {
   const [users, setUsers] = useState([]);
@@ -28,7 +28,7 @@ const UserList = ({ navigation }) => {
       setLoading(true);
       const response = await fetch(`http://${IpAddress}:9000/api/users`);
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setUsers(data.users || []);
       } else {
@@ -52,32 +52,35 @@ const UserList = ({ navigation }) => {
     fetchUsers();
   };
 
-  const filteredUsers = users.filter(user =>
-    `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      `${user.firstName || ""} ${user.lastName || ""}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const renderUserCard = ({ item }) => (
     <TouchableOpacity style={styles.userCard}>
       <LinearGradient
-        colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)']}
+        colors={["rgba(255,255,255,0.9)", "rgba(255,255,255,0.7)"]}
         style={styles.cardGradient}
       >
         <View style={styles.userContent}>
           <View style={styles.avatarContainer}>
             {item.image ? (
-              <Image 
-                source={{ uri: item.image }} 
+              <Image
+                source={{ uri: item.image }}
                 style={styles.userAvatar}
                 resizeMode="cover"
               />
@@ -89,14 +92,17 @@ const UserList = ({ navigation }) => {
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.userName}>
-              {`${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown User"}
+              {`${item.firstName || ""} ${item.lastName || ""}`.trim() ||
+                "Unknown User"}
             </Text>
-            <Text style={styles.userEmail}>
-              {item.email || "No email"}
-            </Text>
+            <Text style={styles.userEmail}>{item.email || "No email"}</Text>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Ionicons name="leaf-outline" size={16} color={COLORS.primary} />
+                <Ionicons
+                  name="leaf-outline"
+                  size={16}
+                  color={COLORS.primary}
+                />
                 <Text style={styles.statText}>
                   {item.detectionCount || 0} Detections
                 </Text>
@@ -137,7 +143,7 @@ const UserList = ({ navigation }) => {
           rightIcon="refresh-outline"
           onRightPress={onRefresh}
         />
-        
+
         <View style={styles.content}>
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
@@ -148,7 +154,10 @@ const UserList = ({ navigation }) => {
             <View style={styles.statCard}>
               <Ionicons name="leaf" size={24} color={COLORS.primary} />
               <Text style={styles.statNumber}>
-                {users.reduce((sum, user) => sum + (user.detectionCount || 0), 0)}
+                {users.reduce(
+                  (sum, user) => sum + (user.detectionCount || 0),
+                  0
+                )}
               </Text>
               <Text style={styles.statLabel}>Total Detections</Text>
             </View>
@@ -170,7 +179,9 @@ const UserList = ({ navigation }) => {
             <FlatList
               data={filteredUsers}
               renderItem={renderUserCard}
-              keyExtractor={(item) => item._id || item.id || Math.random().toString()}
+              keyExtractor={(item) =>
+                item._id || item.id || Math.random().toString()
+              }
               contentContainerStyle={styles.listContainer}
               showsVerticalScrollIndicator={false}
               refreshControl={
@@ -203,18 +214,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginVertical: 16,
     gap: 12,
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: "rgba(255,255,255,0.9)",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -236,8 +247,8 @@ const styles = StyleSheet.create({
   userCard: {
     marginBottom: 8,
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -247,8 +258,8 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   userContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   avatarContainer: {
     marginRight: 12,
@@ -265,8 +276,8 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: COLORS.primary,
   },
@@ -276,7 +287,7 @@ const styles = StyleSheet.create({
   userName: {
     ...FONTS.h4,
     color: COLORS.black,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   userEmail: {
     ...FONTS.body4,
@@ -284,13 +295,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 8,
     gap: 16,
   },
   statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   statText: {
@@ -303,8 +314,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     ...FONTS.body3,
@@ -313,8 +324,8 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 60,
   },
   emptyTitle: {
@@ -326,9 +337,9 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     ...FONTS.body3,
     color: COLORS.white,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.8,
   },
 });
 
-export default UserList; 
+export default UserList;

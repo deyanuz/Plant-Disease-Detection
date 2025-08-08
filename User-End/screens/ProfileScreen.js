@@ -20,8 +20,16 @@ import { jwtDecode } from "jwt-decode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileScreen = () => {
-  const { userName, userEmail, userImage, setUserImage, setUserName, setUserEmail, updateToken } = useContext(AuthContext);
-  
+  const {
+    userName,
+    userEmail,
+    userImage,
+    setUserImage,
+    setUserName,
+    setUserEmail,
+    updateToken,
+  } = useContext(AuthContext);
+
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,7 +46,7 @@ const ProfileScreen = () => {
     const nameParts = userName ? userName.split(" ") : ["", ""];
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
-    
+
     setFormData({
       firstName,
       lastName,
@@ -58,11 +66,12 @@ const ProfileScreen = () => {
   const pickImage = async () => {
     try {
       // Request permissions first
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (status !== 'granted') {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
         Alert.alert(
-          "Permission Required", 
+          "Permission Required",
           "Please grant permission to access your photo library to change your profile picture."
         );
         return;
@@ -89,11 +98,25 @@ const ProfileScreen = () => {
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) {
-        Alert.alert("Error", "No authentication token found");
+        Alert.alert(
+          "Error",
+          "No authentication token found. Please log in again."
+        );
         return;
       }
 
-      const decodedToken = jwtDecode(token);
+      let decodedToken;
+      try {
+        decodedToken = jwtDecode(token);
+      } catch (jwtError) {
+        console.error("JWT decode error:", jwtError);
+        Alert.alert(
+          "Error",
+          "Invalid authentication token. Please log in again."
+        );
+        return;
+      }
+
       const userId = decodedToken.userID;
 
       console.log("Uploading image for user:", userId);
@@ -106,12 +129,15 @@ const ProfileScreen = () => {
         name: "profile.jpg",
       });
 
-      console.log("Sending request to:", `${IpAddress}:8000/upload-profile-image`);
+      console.log(
+        "Sending request to:",
+        `${IpAddress}:8000/upload-profile-image`
+      );
 
       const response = await fetch(`${IpAddress}:8000/upload-profile-image`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -131,17 +157,42 @@ const ProfileScreen = () => {
         const errorText = await response.text();
         console.error("Image upload error response:", errorText);
         let errorMessage = "Failed to upload image";
+        let errorTitle = "Error";
+
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorData.error || errorMessage;
+
+          if (errorData.error === "Invalid token") {
+            errorTitle = "Authentication Error";
+            errorMessage = "Your session has expired. Please log in again.";
+          }
         } catch (e) {
           console.error("Failed to parse error response:", e);
         }
-        Alert.alert("Error", errorMessage);
+
+        Alert.alert(errorTitle, errorMessage);
       }
     } catch (error) {
       console.error("Image upload exception:", error);
-      Alert.alert("Error", "Failed to upload image. Please check your connection and try again.");
+
+      // Handle specific network errors
+      if (error.message.includes("Network request failed")) {
+        Alert.alert(
+          "Connection Error",
+          "Unable to connect to the server. Please check your internet connection and try again."
+        );
+      } else if (error.message.includes("timeout")) {
+        Alert.alert(
+          "Timeout Error",
+          "The request timed out. Please try again."
+        );
+      } else {
+        Alert.alert(
+          "Error",
+          "Failed to upload image. Please check your connection and try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -158,34 +209,59 @@ const ProfileScreen = () => {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) {
-        Alert.alert("Error", "No authentication token found");
+        Alert.alert(
+          "Error",
+          "No authentication token found. Please log in again."
+        );
         return;
       }
 
-      const decodedToken = jwtDecode(token);
+      let decodedToken;
+      try {
+        decodedToken = jwtDecode(token);
+      } catch (jwtError) {
+        console.error("JWT decode error:", jwtError);
+        Alert.alert(
+          "Error",
+          "Invalid authentication token. Please log in again."
+        );
+        return;
+      }
+
       const userId = decodedToken.userID;
 
       console.log("Updating profile for user:", userId);
       console.log("Form data:", formData);
       console.log("Sending request to:", `${IpAddress}:8000/update-profile`);
 
+      const requestBody = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        dateOfBirth: formData.dateOfBirth.trim(),
+      };
+
+      console.log("Request body:", requestBody);
+
       const response = await fetch(`${IpAddress}:8000/update-profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          dateOfBirth: formData.dateOfBirth,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       console.log("Response status:", response.status);
@@ -194,29 +270,76 @@ const ProfileScreen = () => {
       if (response.ok) {
         const data = await response.json();
         console.log("Profile update success:", data);
-        setUserName(`${formData.firstName} ${formData.lastName}`.trim());
-        setUserEmail(formData.email);
-        setOriginalData(formData);
+
+        // Update local state
+        const fullName =
+          `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
+        setUserName(fullName);
+        setUserEmail(formData.email.trim().toLowerCase());
+        setOriginalData({
+          ...formData,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone.trim(),
+          dateOfBirth: formData.dateOfBirth.trim(),
+        });
         setIsEditing(false);
+
+        // Update token if provided
         if (data.token) {
           await updateToken(data.token);
         }
+
         Alert.alert("Success", "Profile updated successfully!");
       } else {
         const errorText = await response.text();
         console.error("Profile update error response:", errorText);
         let errorMessage = "Failed to update profile";
+        let errorTitle = "Error";
+
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorData.error || errorMessage;
+
+          // Handle specific error cases
+          if (errorData.error === "Email already exists") {
+            errorTitle = "Email Already Exists";
+            errorMessage =
+              "This email is already registered by another user. Please use a different email address.";
+          } else if (errorData.error === "Invalid email format") {
+            errorTitle = "Invalid Email";
+            errorMessage = "Please enter a valid email address.";
+          } else if (errorData.error === "Invalid token") {
+            errorTitle = "Authentication Error";
+            errorMessage = "Your session has expired. Please log in again.";
+          }
         } catch (e) {
           console.error("Failed to parse error response:", e);
         }
-        Alert.alert("Error", errorMessage);
+
+        Alert.alert(errorTitle, errorMessage);
       }
     } catch (error) {
       console.error("Profile update exception:", error);
-      Alert.alert("Error", "Failed to update profile. Please check your connection and try again.");
+
+      // Handle specific network errors
+      if (error.message.includes("Network request failed")) {
+        Alert.alert(
+          "Connection Error",
+          "Unable to connect to the server. Please check your internet connection and try again."
+        );
+      } else if (error.message.includes("timeout")) {
+        Alert.alert(
+          "Timeout Error",
+          "The request timed out. Please try again."
+        );
+      } else {
+        Alert.alert(
+          "Error",
+          "Failed to update profile. Please check your connection and try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -271,9 +394,9 @@ const ProfileScreen = () => {
         {/* Profile Image Section */}
         <View style={styles.profileImageSection}>
           <View style={styles.profileImageContainer}>
-            <Image 
-              source={{ uri: userImage || "https://via.placeholder.com/120" }} 
-              style={styles.profileImage} 
+            <Image
+              source={{ uri: userImage || "https://via.placeholder.com/120" }}
+              style={styles.profileImage}
             />
             <TouchableOpacity
               style={styles.imageEditButton}
@@ -295,13 +418,15 @@ const ProfileScreen = () => {
         <View style={styles.formContainer}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
-            
+
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>First Name *</Text>
               <TextInput
                 style={[styles.input, !isEditing && styles.inputDisabled]}
                 value={formData.firstName}
-                onChangeText={(text) => setFormData({...formData, firstName: text})}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, firstName: text })
+                }
                 placeholder="Enter your first name"
                 editable={isEditing}
                 placeholderTextColor="#999"
@@ -313,7 +438,9 @@ const ProfileScreen = () => {
               <TextInput
                 style={[styles.input, !isEditing && styles.inputDisabled]}
                 value={formData.lastName}
-                onChangeText={(text) => setFormData({...formData, lastName: text})}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, lastName: text })
+                }
                 placeholder="Enter your last name"
                 editable={isEditing}
                 placeholderTextColor="#999"
@@ -325,7 +452,9 @@ const ProfileScreen = () => {
               <TextInput
                 style={[styles.input, !isEditing && styles.inputDisabled]}
                 value={formData.email}
-                onChangeText={(text) => setFormData({...formData, email: text})}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, email: text })
+                }
                 placeholder="Enter your email"
                 editable={isEditing}
                 keyboardType="email-address"
@@ -339,7 +468,9 @@ const ProfileScreen = () => {
               <TextInput
                 style={[styles.input, !isEditing && styles.inputDisabled]}
                 value={formData.phone}
-                onChangeText={(text) => setFormData({...formData, phone: text})}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, phone: text })
+                }
                 placeholder="Enter your phone number"
                 editable={isEditing}
                 keyboardType="phone-pad"
@@ -352,7 +483,9 @@ const ProfileScreen = () => {
               <TextInput
                 style={[styles.input, !isEditing && styles.inputDisabled]}
                 value={formData.dateOfBirth}
-                onChangeText={(text) => setFormData({...formData, dateOfBirth: text})}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, dateOfBirth: text })
+                }
                 placeholder="MM/DD/YYYY"
                 editable={isEditing}
                 placeholderTextColor="#999"

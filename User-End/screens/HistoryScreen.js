@@ -166,7 +166,7 @@ const HistoryScreen = () => {
                           style={{
                             padding: 10,
                             borderRadius: 6,
-                            backgroundColor: "#c518f0",
+                            backgroundColor: "#ff0000",
                             width: 100,
                           }}
                         >
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: "#c518f0",
+    backgroundColor: "#013220",
   },
   viewDetailsText: {
     color: "#fff",

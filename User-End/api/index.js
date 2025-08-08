@@ -63,6 +63,13 @@ mongoose
 
 app.listen(port, "0.0.0.0", () => console.log("Server runing on port 8000"));
 
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("Uploads directory created:", uploadsDir);
+}
+
 //endpoints for user creation
 app.post("/register", async (req, res) => {
   try {
@@ -779,7 +786,14 @@ app.put("/update-profile", async (req, res) => {
     }
 
     console.log("Verifying token...");
-    const decoded = jwt.verify(token, JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (jwtError) {
+      console.log("JWT verification failed:", jwtError.message);
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
     const userId = decoded.userID;
     console.log("Token verified for user:", userId);
 
@@ -798,6 +812,16 @@ app.put("/update-profile", async (req, res) => {
       return res.status(400).json({
         error: "Missing required fields",
         message: "firstName and email are required",
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log("Invalid email format:", email);
+      return res.status(400).json({
+        error: "Invalid email format",
+        message: "Please provide a valid email address",
       });
     }
 
@@ -820,13 +844,13 @@ app.put("/update-profile", async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
-        firstName,
-        lastName,
-        email,
-        phone: phone || "",
-        dateOfBirth: dateOfBirth || "",
+        firstName: firstName.trim(),
+        lastName: lastName ? lastName.trim() : "",
+        email: email.trim().toLowerCase(),
+        phone: phone ? phone.trim() : "",
+        dateOfBirth: dateOfBirth ? dateOfBirth.trim() : "",
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updatedUser) {
@@ -866,7 +890,28 @@ app.put("/update-profile", async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating profile:", error);
-    res.status(500).json({ error: "Failed to update profile" });
+
+    // Handle specific MongoDB errors
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        error: "Validation error",
+        message: Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", "),
+      });
+    }
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        error: "Invalid user ID",
+        message: "The provided user ID is not valid",
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to update profile",
+      message: "An internal server error occurred. Please try again.",
+    });
   }
 });
 
@@ -880,7 +925,17 @@ app.post("/upload-profile-image", upload.single("image"), async (req, res) => {
     }
 
     console.log("Verifying token for image upload...");
-    const decoded = jwt.verify(token, JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (jwtError) {
+      console.log(
+        "JWT verification failed for image upload:",
+        jwtError.message
+      );
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
     const userId = decoded.userID;
     console.log("Token verified for user:", userId);
 
@@ -944,7 +999,27 @@ app.post("/upload-profile-image", upload.single("image"), async (req, res) => {
     });
   } catch (error) {
     console.error("Error uploading profile image:", error);
-    res.status(500).json({ error: "Failed to upload profile image" });
+
+    // Handle specific errors
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        error: "Invalid user ID",
+        message: "The provided user ID is not valid",
+      });
+    }
+
+    if (error.message.includes("sharp")) {
+      return res.status(400).json({
+        error: "Image processing error",
+        message:
+          "Failed to process the uploaded image. Please try a different image.",
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to upload profile image",
+      message: "An internal server error occurred. Please try again.",
+    });
   }
 });
 

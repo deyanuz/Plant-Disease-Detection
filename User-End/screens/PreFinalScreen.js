@@ -152,12 +152,12 @@ const PreFinalScreen = () => {
         style={{
           color: "white",
           padding: 15,
-          backgroundColor: "#a71ec9",
+          backgroundColor: "#013220",
           marginTop: "auto",
           marginBottom: 30,
           padding: 12,
           marginHorizontal: 10,
-borderRadius: 6,
+          borderRadius: 6,
         }}
       >
         <Text
