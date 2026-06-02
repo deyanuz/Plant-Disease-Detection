@@ -26,7 +26,7 @@ A mobile application that uses **Artificial Intelligence** to detect plant disea
 
 ## 📸 Screenshots
 
-| Auth | Detection | Marketplace |
+| Auth | Detection | Detection | Marketplace |
 |------|-----------|-------------|
 | ![Auth](auth.png) | ![Detection](detection1.png) | ![Detection](detection2.png) | ![Shop](shop.png) |
 
